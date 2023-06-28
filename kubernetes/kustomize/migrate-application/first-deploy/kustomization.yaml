@@ -1,0 +1,11 @@
+resources:
+    - ../../../deployments/redis.yaml
+    - ../../../services/redis.yaml
+    - ../../../namespace.yaml
+    - ../../../configmap/redis-health.yaml
+    - ./migrate-application.yaml
+namespace: "{{PROJECT_NAME}}"
+configMapGenerator:
+    -   name: domains-urls
+        files:
+            - ../../../../../../{{DOMAINS_URLS_FILEPATH}}

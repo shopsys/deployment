@@ -1,0 +1,10 @@
+resources:
+    - ../../namespace.yaml
+    - ../../deployments/cron.yaml
+    - ../../configmap/cron-env.yaml
+    - ../../configmap/cron-list.yaml
+namespace: "{{PROJECT_NAME}}"
+configMapGenerator:
+    -   name: domains-urls
+        files:
+            - ../../../../../{{DOMAINS_URLS_FILEPATH}}

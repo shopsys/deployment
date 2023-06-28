@@ -1,0 +1,8 @@
+{
+    "name": "shopsys/deployment",
+    "description": "Simplifies the deployment of the Shopsys Platform application in Kubernetes. It provides an intuitive set of tools and configurations, allowing you to seamlessly orchestrate and manage the deployment process.",
+    "keywords": ["kubernetes", "deploy", "shopsys", "platform", "framework", "symfony"],
+    "type": "library",
+    "license": "MIT",
+    "require": {}
+}

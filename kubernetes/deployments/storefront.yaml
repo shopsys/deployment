@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: storefront
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: storefront
+    template:
+        metadata:
+            labels:
+                app: storefront
+        spec:
+            affinity:
+                podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        -   weight: 100
+                            podAffinityTerm:
+                                topologyKey: "kubernetes.io/hostname"
+                                labelSelector:
+                                    matchExpressions:
+                                        -   key: app
+                                            operator: In
+                                            values:
+                                                - storefront
+            containers:
+                -   name: storefront
+                    image: "{{STOREFRONT_TAG}}"
+                    ports:
+                        -   name: storefront
+                            containerPort: 3000
+                            protocol: TCP
+                    resources:
+                        limits:
+                            cpu: "2"
+                        requests:
+                            cpu: "0.5"
+            imagePullSecrets:
+                -   name: dockerregistry

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: production-php-fpm
+data:
+    www.conf: |
+        ; The below default configuration is based on a server without much resources.
+        ; Don't forget to tweak it to fit expected workload and hardware.
+        ;
+        ; https://www.php.net/manual/en/install.fpm.configuration.php
+        [www]
+
+        user = www-data
+        group = www-data
+
+        listen = 127.0.0.1:9000
+
+        pm = dynamic
+        pm.max_children = 100
+        pm.start_servers = 25
+        pm.min_spare_servers = 25
+        pm.max_spare_servers = 50
+        pm.max_requests = 1000
+
+        access.log = /dev/null
