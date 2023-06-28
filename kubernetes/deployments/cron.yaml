@@ -42,7 +42,7 @@ spec:
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     command: ["/bin/sh","-c"]
-                    args: ["cd /var/www/html && ./phing warmup > /dev/null && rm -f /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && cron && stdbuf -o0 tail -n +1 -f /tmp/log-pipe"]
+                    args: ["cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && cron && stdbuf -o0 tail -n +1 -f /tmp/log-pipe"]
                     lifecycle:
                         preStop:
                             exec:
