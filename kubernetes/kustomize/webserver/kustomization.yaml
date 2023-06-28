@@ -4,7 +4,7 @@ resources:
     - ../../deployments/storefront.yaml
     - ../../services/storefront.yaml
     - ../../namespace.yaml
-    - ../../configmap/nginx-storefront.yaml
+    - ../../configmap/nginx.yaml
     - ../../configmap/production-php-fpm.yaml
     - ../../configmap/production-php-opcache.yaml
 namespace: "{{PROJECT_NAME}}"
