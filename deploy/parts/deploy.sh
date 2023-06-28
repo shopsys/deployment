@@ -12,7 +12,6 @@ assertVariable "DEPLOY_REGISTER_PASSWORD"
 
 assertVariable "BASIC_AUTH_PATH"
 assertVariable "ENABLE_AUTOSCALING"
-assertVariable "USING_STOREFRONT"
 assertVariable "RUNNING_PRODUCTION"
 
 echo "Prepare namespace to run project:"
