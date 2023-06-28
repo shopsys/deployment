@@ -12,11 +12,11 @@ fi
 
 VARS+=(REDIS_VERSION)
 
-DOMAINS_URLS_FILEPATH="$(find_file "$(get_config_directory)" "domains_urls")"
+DOMAINS_URLS_FILEPATH="$(find_file "config" "domains_urls")"
 
 VARS+=(DOMAINS_URLS_FILEPATH)
 
-CONFIG_PREFIX="$(get_config_directory)/"
+CONFIG_PREFIX="config/"
 DOMAINS_URLS_FILENAME=${DOMAINS_URLS_FILEPATH#"$CONFIG_PREFIX"}
 
 VARS+=(DOMAINS_URLS_FILENAME)

@@ -76,7 +76,3 @@ function find_file() {
 function remove_dist() {
     echo ${1%.*}
 }
-
-function get_config_directory() {
-   echo "app/config"
-}

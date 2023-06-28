@@ -7,7 +7,7 @@ assertVariable "CONFIGURATION_TARGET_PATH"
 assertVariable "DOMAINS"
 assertVariable "RUNNING_PRODUCTION"
 
-DOMAINS_URLS_DIST_FILEPATH="$(find_file "${BASE_PATH}/$(get_config_directory)" "domains_urls" 1)"
+DOMAINS_URLS_DIST_FILEPATH="$(find_file "${BASE_PATH}/config" "domains_urls" 1)"
 DOMAINS_URLS_FILEPATH="$(remove_dist "${DOMAINS_URLS_DIST_FILEPATH}")"
 
 cp ${DOMAINS_URLS_DIST_FILEPATH} ${DOMAINS_URLS_FILEPATH}
