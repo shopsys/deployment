@@ -76,6 +76,10 @@ data:
             real_ip_header    X-Forwarded-For;
             real_ip_recursive on;
 
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Credentials "false" always;
+            add_header VSHCDN-WEBP-QUALITY 90;
+
             set $request_host $http_host;
             if ($http_originalhost) {
                 set $request_host $http_originalhost;
@@ -93,7 +97,6 @@ data:
                 }
 
                 location ~ / {
-                    add_header "Access-Control-Allow-Origin" "*";
                     # try to serve existing files directly, fallback to @app
                     try_files $uri @app;
 
@@ -165,6 +168,7 @@ data:
 
             location @storefront {
                 internal;
+                proxy_hide_header Access-Control-Allow-Origin;
                 proxy_set_header Host $http_host;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_http_version 1.1;
