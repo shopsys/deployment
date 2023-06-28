@@ -23,7 +23,7 @@ echo -n "    Delete secret for docker registry "
 runCommand "SKIP" "kubectl delete secret dockerregistry -n ${PROJECT_NAME}"
 
 echo -n "    Create new secret for docker registry "
-if [ ${GCLOUD_DEPLOY} = true ]; then
+if [ "${GCLOUD_DEPLOY}" = "true" ]; then
     runCommand "ERROR" "kubectl create secret docker-registry dockerregistry --docker-server=eu.gcr.io --docker-username _json_key --docker-email ${GCLOUD_CONTAINER_REGISTRY_EMAIL} --docker-password='${GCLOUD_CONTAINER_REGISTRY_ACCOUNT}' -n ${PROJECT_NAME}"
 else
     runCommand "ERROR" "kubectl create secret docker-registry dockerregistry --docker-server=${CI_REGISTRY} --docker-username=${DEPLOY_REGISTER_USER} --docker-password=${DEPLOY_REGISTER_PASSWORD} -n ${PROJECT_NAME}"

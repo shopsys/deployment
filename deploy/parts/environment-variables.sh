@@ -10,9 +10,9 @@ fi
 
 # Webserver Deployment configuration files
 ITERATOR=0
-for key in ${!ENVIRONMENT_VARIABLES[@]}; do
 
-    if [ -z ${ENVIRONMENT_VARIABLES[${key}]} ]
+for key in "${!ENVIRONMENT_VARIABLES[@]}"; do
+    if [ -z "${ENVIRONMENT_VARIABLES[$key]}" ]
     then
         echo "Variable '${key}' couldn't be set because it's empty"
     else
