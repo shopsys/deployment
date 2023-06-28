@@ -81,14 +81,6 @@ data:
                 set $request_host $http_originalhost;
             }
 
-            set $frontend_upstream @storefront;
-            set $frontend_upstream_uri @storefront;
-
-            if ($http_cookie ~ "twigStorefront=true") {
-                set $frontend_upstream @app;
-                set $frontend_upstream_uri $uri;
-            }
-
             location ~ /(admin|public|content|ckeditor|build|bundles|graphql|_profiler|_wdt|file|redirect|elfinder|efconnect|personal-overview-export) {
 
                 location ~ /\. {
@@ -168,7 +160,7 @@ data:
             }
 
             location ~ / {
-                try_files $frontend_upstream_uri $frontend_upstream;
+                try_files @storefront @storefront;
             }
 
             location @storefront {
