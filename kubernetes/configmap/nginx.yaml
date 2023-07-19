@@ -85,6 +85,12 @@ data:
                 set $request_host $http_originalhost;
             }
 
+            location ~ ^/resolve-friendly-url {
+                fastcgi_pass php-upstream;
+                include fastcgi_params;
+                fastcgi_param SCRIPT_FILENAME $realpath_root/resolveFriendlyUrl.php;
+            }
+
             location ~ /(admin|public|content|ckeditor|build|bundles|graphql|_profiler|_wdt|file|redirect|elfinder|efconnect|personal-overview-export) {
 
                 location ~ /\. {
