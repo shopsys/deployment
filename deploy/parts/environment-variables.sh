@@ -78,8 +78,8 @@ for DOMAIN in ${DOMAINS[@]}; do
     ITERATOR=$(expr $ITERATOR + 1)
 done
 
-yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"INTERNAL_GRAPHQL_ENDPOINT\""
-yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"http://webserver-php-fpm:8080/graphql/\""
+yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"INTERNAL_ENDPOINT\""
+yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"http://webserver-php-fpm:8080/\""
 
 
 echo -e "[${GREEN}OK${NO_COLOR}]"
