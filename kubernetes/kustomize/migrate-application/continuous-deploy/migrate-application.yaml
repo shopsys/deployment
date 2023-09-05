@@ -12,7 +12,7 @@ spec:
             containers:
                 -   name: migrate-application
                     image: "{{TAG}}"
-                    command: ["sh", "-c", "cd /var/www/html && ./phing db-migrations-count-with-maintenance build-deploy-part-2-db-dependent"]
+                    command: ["sh", "-c", "cd /var/www/html && ./phing -verbose db-migrations-count-with-maintenance build-deploy-part-2-db-dependent"]
                     securityContext:
                         runAsUser: 33
                     volumeMounts:
