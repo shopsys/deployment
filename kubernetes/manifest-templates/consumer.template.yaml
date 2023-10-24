@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: consumer-{{NAME}}
+    labels:
+        app: consumer-{{NAME}}
+spec:
+    progressDeadlineSeconds: 600
+    replicas: {{REPLICAS_COUNT}}
+    strategy:
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+        type: RollingUpdate
+    selector:
+        matchLabels:
+            app: consumer-{{NAME}}
+    template:
+        metadata:
+            labels:
+                app: consumer-{{NAME}}
+        spec:
+            volumes:
+                -   name: domains-urls
+                    configMap:
+                        name: domains-urls
+                -   name: fe-api-keys-volume
+                    secret:
+                        secretName: fe-api-keys
+                        defaultMode: 0644
+            terminationGracePeriodSeconds: 3600
+            containers:
+                -   image: "{{TAG}}"
+                    name: consumer-{{NAME}}
+                    securityContext:
+                        runAsUser: 33
+                    imagePullPolicy: Always
+                    workingDir: /var/www/html
+                    command:
+                        - /bin/sh
+                        - -c
+                        - sleep 5 && ./phing warmup && bin/console messenger:consume {{TRANSPORT_NAMES}} --time-limit=600 -vv
+                    lifecycle:
+                        preStop:
+                            exec:
+                                command: ["php", "./bin/console messenger:stop-workers"]
+                    volumeMounts:
+                        -   name: domains-urls
+                            mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
+                            subPath: "{{DOMAINS_URLS_FILENAME}}"
+                        -   name: fe-api-keys-volume
+                            readOnly: true
+                            mountPath: /var/www/html/config/frontend-api
+            imagePullSecrets:
+                -   name: dockerregistry

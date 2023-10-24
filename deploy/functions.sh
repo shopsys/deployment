@@ -76,3 +76,23 @@ function find_file() {
 function remove_dist() {
     echo ${1%.*}
 }
+
+function create_consumer_manifests() {
+    local DEFAULT_CONSUMERS="$1"
+
+    TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer.template.yaml"
+
+    for CONSUMER in "${DEFAULT_CONSUMERS[@]}"; do
+        IFS=":" read -r NAME TRANSPORT_NAMES REPLICAS_COUNT <<< "$CONSUMER"
+
+        CONSUMER_MANIFEST_PATH="${CONFIGURATION_TARGET_PATH}/deployments/consumer-${NAME}.yaml"
+
+        cp "${TEMPLATE_PATH}" "${CONSUMER_MANIFEST_PATH}"
+
+        sed -i "s|{{NAME}}|${NAME}|g" "${CONSUMER_MANIFEST_PATH}"
+        sed -i "s|{{TRANSPORT_NAMES}}|${TRANSPORT_NAMES}|g" "${CONSUMER_MANIFEST_PATH}"
+        sed -i "s|{{REPLICAS_COUNT}}|${REPLICAS_COUNT}|g" "${CONSUMER_MANIFEST_PATH}"
+
+        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/kustomization.yaml"
+    done
+}
