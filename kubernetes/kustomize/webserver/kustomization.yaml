@@ -7,6 +7,7 @@ resources:
     - ../../configmap/nginx.yaml
     - ../../configmap/production-php-fpm.yaml
     - ../../configmap/production-php-opcache.yaml
+    - ../../ingress/ingress-rabbitmq.yaml
 namespace: "{{PROJECT_NAME}}"
 configMapGenerator:
     -   name: domains-urls

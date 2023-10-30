@@ -32,6 +32,7 @@ function deploy() {
         ["REDIS_PREFIX"]=${PROJECT_NAME}
         ["MAILER_DSN"]=${MAILER_DSN}
         ["TRUSTED_PROXY"]=10.0.0.0/8
+        ["MESSENGER_TRANSPORT_DSN"]=${MESSENGER_TRANSPORT_DSN}
     )
 
     declare -A STOREFRONT_ENVIRONMENT_VARIABLES=(
@@ -47,10 +48,14 @@ function deploy() {
         STOREFRONT_TAG
         PROJECT_NAME
         BASE_PATH
+        RABBITMQ_DEFAULT_USER
+        RABBITMQ_DEFAULT_PASS
+        RABBITMQ_IP_WHITELIST
     )
 
     source "${DEPLOY_TARGET_PATH}/functions.sh"
     source "${DEPLOY_TARGET_PATH}/parts/domains.sh"
+    source "${DEPLOY_TARGET_PATH}/parts/domain-rabbitmq-management.sh"
     source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/kubernetes-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/cron.sh"
@@ -59,8 +64,15 @@ function deploy() {
 }
 
 function merge() {
+    # Specify consumers configuration with the default configuration in the format:
+    # <consumer-name>:<transport-names-separated-by-space>:<number-of-consumers>
+    DEFAULT_CONSUMERS=(
+        "example:example_transport:1"
+    )
+
     source "${BASE_PATH}/vendor/shopsys/deployment/deploy/functions.sh"
     merge_configuration
+    create_consumer_manifests $DEFAULT_CONSUMERS
 }
 
 case "$1" in

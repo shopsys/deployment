@@ -87,23 +87,26 @@ Environment variables can be set in Gitlab (Settings -> CI/CD -> Variables)
 
 If you want to define your custom variables see [Define custom variables](#define-custom-variables) section
 
-| Name                         | Example                         | Description                                                                                                                 |            Scope |
-|:-----------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------|-----------------:|
-| DEPLOY_REGISTER_USER         | deploy                          | Credentials for downloading docker images *1)                                                                               |              All |
-| DEPLOY_REGISTER_PASSWORD     | *******                         | Credentials for downloading docker images *1)                                                                               |              All |
-| DISPLAY_FINAL_CONFIGURATION  | _1_ OR _0_                      | Display configurations after kubernetes scripts are prepared                                                                |              All |
-| RUNNING_PRODUCTION           | _1_ OR _0_                      | Enable/disable HTTP auth and mailer whitelist                                                                               | production/devel |
-| FIRST_DEPLOY                 | _1_ OR _0_                      | Set to 1 if you are deploying project instance first time                                                                   | production/devel |
-| DOMAIN_HOSTNAME_*            | example.com                     | Variable contains URL address for accessing website. See  [Add more or less domains](#add-more-or-less-domains)             | production/devel |                                   | All  |
-| ELASTICSEARCH_URL            | username:password@elasticsearch | Elasticsearch login URL                                                                                                     |              All |
-| POSTGRES_DATABASE_IP_ADDRESS | 127.0.0.1                       | Postgres host IP address                                                                                                    | production/devel |
-| POSTGRES_DATABASE_PORT       | 5432                            | Postgres port                                                                                                               |              All |
-| POSTGRES_DATABASE_PASSWORD   | *******                         | Postgres login password                                                                                                     | production/devel |
-| PROJECT_NAME                 | project-prod                    | Name of project (Used for namespace, prefixes and S3 bucket) - must be distinct for production/devel with prod/devel suffix | production/devel |
-| S3_API_HOST                  | https://s3.vshosting.cloud      | S3 API Host                                                                                                                 |              All |
-| S3_API_USERNAME              | s3user                          | S3 API username                                                                                                             |              All |
-| S3_API_PASSWORD              | *******                         | S3 API password                                                                                                             |              All |
-| APP_SECRET                   | *******                         | Used to add more entropy to security related operations                                                                     |              All |
+| Name                         | Example                          | Description                                                                                                                 |            Scope |
+|:-----------------------------|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------|-----------------:|
+| DEPLOY_REGISTER_USER         | deploy                           | Credentials for downloading docker images *1)                                                                               |              All |
+| DEPLOY_REGISTER_PASSWORD     | *******                          | Credentials for downloading docker images *1)                                                                               |              All |
+| DISPLAY_FINAL_CONFIGURATION  | _1_ OR _0_                       | Display configurations after kubernetes scripts are prepared                                                                |              All |
+| RUNNING_PRODUCTION           | _1_ OR _0_                       | Enable/disable HTTP auth and mailer whitelist                                                                               | production/devel |
+| FIRST_DEPLOY                 | _1_ OR _0_                       | Set to 1 if you are deploying project instance first time                                                                   | production/devel |
+| DOMAIN_HOSTNAME_*            | example.com                      | Variable contains URL address for accessing website. See  [Add more or less domains](#add-more-or-less-domains)             | production/devel |
+| ELASTICSEARCH_URL            | username:password@elasticsearch  | Elasticsearch login URL                                                                                                     |              All |
+| POSTGRES_DATABASE_IP_ADDRESS | 127.0.0.1                        | Postgres host IP address                                                                                                    | production/devel |
+| POSTGRES_DATABASE_PORT       | 5432                             | Postgres port                                                                                                               |              All |
+| POSTGRES_DATABASE_PASSWORD   | *******                          | Postgres login password                                                                                                     | production/devel |
+| PROJECT_NAME                 | project-prod                     | Name of project (Used for namespace, prefixes and S3 bucket) - must be distinct for production/devel with prod/devel suffix | production/devel |
+| S3_API_HOST                  | https://s3.vshosting.cloud       | S3 API Host                                                                                                                 |              All |
+| S3_API_USERNAME              | s3user                           | S3 API username                                                                                                             |              All |
+| S3_API_PASSWORD              | *******                          | S3 API password                                                                                                             |              All |
+| APP_SECRET                   | *******                          | Used to add more entropy to security related operations                                                                     |              All |
+| RABBITMQ_DEFAULT_USER        | rabbitadmin                      | Default user used for RabbitMQ and the management service                                                                   |              All |
+| RABBITMQ_DEFAULT_PASS        | *******                          | Password for the default RabbitMQ user                                                                                      |              All |
+| RABBITMQ_IP_WHITELIST        | 123.456.123.422, 423.534.223.234 | IP Addresses (separated by comma) for which is the RabbitMQ Management accessible                                           |              All |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 

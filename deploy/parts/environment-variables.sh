@@ -16,6 +16,14 @@ for key in "${!ENVIRONMENT_VARIABLES[@]}"; do
     then
         echo "Variable '${key}' couldn't be set because it's empty"
     else
+        # Consumer deployments
+        for CONSUMER_FILE in "${CONFIGURATION_TARGET_PATH}/deployments/"consumer-*.yaml; do
+            if [ -f "$CONSUMER_FILE" ]; then
+                yq write --inplace "${CONSUMER_FILE}" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
+                yq write --inplace "${CONSUMER_FILE}" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+            fi
+        done
+
         # Webserver PHP-FPM deployment
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
