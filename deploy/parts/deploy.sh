@@ -177,6 +177,17 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
 fi
 
+RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[0].metadata.name}')
+
+echo -n "Disable maintenance page "
+runCommand "ERROR" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing maintenance-off"
+
+echo -n "Clean old redis keys "
+runCommand "FAILED" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing clean-redis-old"
+
+echo -n "Clean storefront cache (queries and translations) "
+runCommand "FAILED" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing clean-redis-storefront"
+
 if [ -z ${DISABLE_WEBSITE_RUNNING_CHECK} ]; then
     DISABLE_WEBSITE_RUNNING_CHECK=false
 fi
