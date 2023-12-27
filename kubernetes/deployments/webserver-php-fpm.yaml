@@ -88,9 +88,6 @@ spec:
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     lifecycle:
-                        postStart:
-                            exec:
-                                command: ["/var/www/html/phing", "-S", "maintenance-off", "clean-redis-old"]
                         preStop:
                             exec:
                                 command:
