@@ -14,3 +14,11 @@
 
 - clear Redis cache only once instead of at every container start ([#7](https://github.com/shopsys/deployment/pull/7/files))
     - phing target `clean-redis-storefront` is available from shopsys/framework v14.0.0
+
+## Upgrade from v1.1.0 to v2.0.1
+
+- use image proxy for images ([#5](https://github.com/shopsys/deployment/pull/5) and [#6](https://github.com/shopsys/deployment/pull/6))
+    - the [`@imageResizer` PHP script](https://github.com/shopsys/shopsys/blob/14.0/project-base/app/web/imageResizer.php) is available from shopsys/project-base v14.0.0
+    - be sure to verify the images redirection regex matches your application settings
+        - all the image sizes are explicitly included in the regex so if your application uses another sizes, you need to update the regex to match your application settings
+        - you might need to [create your own](https://github.com/shopsys/deployment#customize-deployment) storefront nginx config file for that purpose
