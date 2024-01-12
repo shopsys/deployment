@@ -3,6 +3,8 @@ resources:
     - ../../../services/redis.yaml
     - ../../../namespace.yaml
     - ../../../configmap/redis-health.yaml
+    - ../../../deployments/rabbitmq.yaml
+    - ../../../services/rabbitmq.yaml
     - ./migrate-application.yaml
 namespace: "{{PROJECT_NAME}}"
 configMapGenerator:
