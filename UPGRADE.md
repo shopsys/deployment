@@ -10,6 +10,14 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v2.1.1 to v2.1.2
+
+- update your `deploy-project.sh` to properly deploy consumer manifests ([#9](https://github.com/shopsys/deployment/pull/9/files))
+
+## Upgrade from v2.1.0 to v2.1.1
+
+- check your custom `orchestration/kubernetes/kustomize/migrate-application/first-deploy/kustomization.yaml` file and update accordingly to the https://github.com/shopsys/deployment/commit/868bcb19e703170a15384504c5f1a2477be77c33
+
 ## Upgrade from v2.0.1 to v2.1.0
 
 - clear Redis cache only once instead of at every container start ([#7](https://github.com/shopsys/deployment/pull/7/files))

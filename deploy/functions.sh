@@ -78,7 +78,7 @@ function remove_dist() {
 }
 
 function create_consumer_manifests() {
-    local DEFAULT_CONSUMERS="$1"
+    local -a DEFAULT_CONSUMERS=("$@")
 
     TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer.template.yaml"
 
