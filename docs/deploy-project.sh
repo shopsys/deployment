@@ -72,7 +72,7 @@ function merge() {
 
     source "${BASE_PATH}/vendor/shopsys/deployment/deploy/functions.sh"
     merge_configuration
-    create_consumer_manifests $DEFAULT_CONSUMERS
+    create_consumer_manifests "${DEFAULT_CONSUMERS[@]}"
 }
 
 case "$1" in
