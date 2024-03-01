@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v2.1.2 to XXX
+
+- added security headers for more safety ([#10](https://github.com/shopsys/deployment/pull/10))
+
 ## Upgrade from v2.1.1 to v2.1.2
 
 - update your `deploy-project.sh` to properly deploy consumer manifests ([#9](https://github.com/shopsys/deployment/pull/9/files))
