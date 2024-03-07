@@ -10,7 +10,7 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
-## Upgrade from v2.1.2 to XXX
+## Upgrade from v2.1.2 to v2.1.3
 
 - added security headers for more safety ([#10](https://github.com/shopsys/deployment/pull/10))
 
