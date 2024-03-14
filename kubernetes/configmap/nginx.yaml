@@ -79,6 +79,8 @@ data:
             add_header Access-Control-Allow-Origin "*" always;
             add_header Access-Control-Allow-Credentials "false" always;
             add_header VSHCDN-WEBP-QUALITY 90;
+            add_header X-Frame-Options "SAMEORIGIN";
+            add_header X-Content-Type-Options "nosniff";
 
             set $request_host $http_host;
             if ($http_originalhost) {
