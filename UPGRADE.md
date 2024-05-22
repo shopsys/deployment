@@ -14,6 +14,7 @@
 
 - refactor working with whitelisted IP addresses ([#11](https://github.com/shopsys/deployment/pull/11))
 - fix redirect chain ([#12](https://github.com/shopsys/deployment/pull/12))
+- correctly call self domain from container ([#13](https://github.com/shopsys/deployment/pull/13))
 
 ## Upgrade from v2.1.2 to v2.1.3
 
