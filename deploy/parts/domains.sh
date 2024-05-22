@@ -44,8 +44,6 @@ for DOMAIN in ${DOMAINS[@]}; do
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($host ~ ^www\.(?<domain>.+)$) { return 308 http://$domain$request_uri; }'
     fi
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" spec.template.spec.hostAliases[0].hostnames[+] ${BASE_DOMAIN}
-
     if [ ! -z "${DOMAIN_PATH}" ]; then
         yq write --inplace ${DOMAINS_URLS_FILEPATH} domains_urls[${DOMAIN_ITERATOR}].url https://${BASE_DOMAIN}/${DOMAIN_PATH}
     else
