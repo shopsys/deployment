@@ -35,9 +35,13 @@ for DOMAIN in ${DOMAINS[@]}; do
     if [[ ${BASENAME} == "www."* ]]; then
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN=${BASENAME#"www."}
+
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 http://www.$host$request_uri; }'
     else
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN="www.${BASENAME}"
+
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($host ~ ^www\.(?<domain>.+)$) { return 308 http://$domain$request_uri; }'
     fi
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" spec.template.spec.hostAliases[0].hostnames[+] ${BASE_DOMAIN}
@@ -58,17 +62,17 @@ for DOMAIN in ${DOMAINS[@]}; do
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].http.paths[0].path "/${DOMAIN_PATH}/"
     fi
 
-    if [ ${RUNNING_PRODUCTION} -eq "1" ] && ! containsElement ${DOMAIN} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${REDIRECT_DOMAIN}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/from-to-www-redirect\"" "\"true\""
-    else
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[+].host ${REDIRECT_DOMAIN}
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${REDIRECT_DOMAIN}
+
+    if [ ${RUNNING_PRODUCTION} -ne "1" ] || containsElement ${DOMAIN} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-type\"" basic
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-secret\"" http-auth
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-realm\"" "Authentication Required - ok"
 
         if [ -n "${!WHITELIST_IPS}" ]; then
             yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/satisfy\"" "any"
-            yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/whitelist-source-range\"" ${WHITELIST_IPS}
+            yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/whitelist-source-range\"" "${WHITELIST_IPS}"
         fi
     fi
 
