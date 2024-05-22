@@ -36,12 +36,12 @@ for DOMAIN in ${DOMAINS[@]}; do
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN=${BASENAME#"www."}
 
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 http://www.$host$request_uri; }'
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }'
     else
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN="www.${BASENAME}"
 
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($host ~ ^www\.(?<domain>.+)$) { return 308 http://$domain$request_uri; }'
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^www\.(?<domain>.+)$) { return 308 https://$domain$request_uri; }'
     fi
 
     if [ ! -z "${DOMAIN_PATH}" ]; then
