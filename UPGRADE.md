@@ -13,6 +13,7 @@
 ## Upgrade from v2.1.3 to v3.0.0
 
 - refactor working with whitelisted IP addresses ([#11](https://github.com/shopsys/deployment/pull/11))
+- fix redirect chain ([#12](https://github.com/shopsys/deployment/pull/12))
 
 ## Upgrade from v2.1.2 to v2.1.3
 
