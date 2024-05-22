@@ -17,6 +17,10 @@ spec:
                     configMap:
                         name: redis-health-configmap
                         defaultMode: 0755
+                -   name: config
+                    configMap:
+                        name: redis
+                        defaultMode: 0755
             containers:
                 -   name: redis
                     image: "{{REDIS_VERSION}}"
@@ -27,6 +31,11 @@ spec:
                     volumeMounts:
                         -   name: health
                             mountPath: /health
+                        -   name: config
+                            mountPath: /usr/local/etc/redis/redis.conf
+                            subPath: redis.conf
+                    args:
+                        - /usr/local/etc/redis/redis.conf
                     livenessProbe:
                         initialDelaySeconds: 30
                         timeoutSeconds: 5
