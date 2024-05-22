@@ -4,11 +4,15 @@
 
 1. In `composer.json` upgrade `shopsys/deployment` to new version:
     ```diff
-   - "shopsys/deployment": "~1.9.0",
-   + "shopsys/deployment": "~1.12.0",
+   - "shopsys/deployment": "~2.1.3",
+   + "shopsys/deployment": "~3.0.0",
     ```
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
+
+## Upgrade from v2.1.3 to v3.0.0
+
+- refactor working with whitelisted IP addresses ([#11](https://github.com/shopsys/deployment/pull/11))
 
 ## Upgrade from v2.1.2 to v2.1.3
 

@@ -248,13 +248,11 @@ Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
 
 ### Whitelist IP addresses
 
-1. Copy [script](./docs/whitelist-ip.sh) `deploy/parts/whitelist-ip.sh`
-2. Update placeholder `allow 10.10.10.10;` with your IP addresses
-3. Set up a script to run in `deploy/deploy-project.sh`
-  ```diff
-    ...
-    source "${DEPLOY_TARGET_PATH}/parts/domains.sh"
-  + source "${BASE_PATH}/deploy/parts/whitelist-ip.sh"
-    source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
-    ...
-  ```
+You need only to add IP address to `deploy/deploy-project.sh` to `WHITELIST_IPS` variable
+
+*TIP:* It would be nice to have all IP addresses described like:
+```shell
+#              Some IP   Another IP    Some service
+WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
+```
+
