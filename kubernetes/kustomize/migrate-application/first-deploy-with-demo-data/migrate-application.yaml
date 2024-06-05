@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: migrate-application
+spec:
+    template:
+        spec:
+            volumes:
+                -   name: domains-urls
+                    configMap:
+                        name: domains-urls
+            containers:
+                -   name: migrate-application
+                    image: "{{TAG}}"
+                    command:
+                        - sh
+                        - -c
+                        - cd /var/www/html &&
+                            ./phing 
+                            cluster-first-deploy 
+                            db-fixtures-demo
+                            plugin-demo-data-load
+                            friendly-urls-generate
+                            domains-urls-replace
+                            elasticsearch-export
+                    securityContext:
+                        runAsUser: 33
+                    volumeMounts:
+                        -   name: domains-urls
+                            mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
+                            subPath: "{{DOMAINS_URLS_FILENAME}}"
+            restartPolicy: Never
+            imagePullSecrets:
+                -   name: dockerregistry
+    backoffLimit: 0
