@@ -93,7 +93,7 @@ data:
                 fastcgi_param SCRIPT_FILENAME $realpath_root/resolveFriendlyUrl.php;
             }
 
-            location ~ /(admin|public|content|ckeditor|build|bundles|graphql|_profiler|_wdt|file|redirect|elfinder|efconnect|personal-overview-export) {
+            location ~ /(admin|public|content|ckeditor|build|bundles|graphql|_profiler|_wdt|file|redirect|elfinder|efconnect|personal-overview-export|social-network) {
 
                 location ~ /\. {
                     # hide dotfiles (send to @app)
