@@ -1,0 +1,14 @@
+resources:
+    - ../../../deployments/redis.yaml
+    - ../../../services/redis.yaml
+    - ../../../namespace.yaml
+    - ../../../configmap/redis.yaml
+    - ../../../configmap/redis-health.yaml
+    - ../../../deployments/rabbitmq.yaml
+    - ../../../services/rabbitmq.yaml
+    - ./migrate-application.yaml
+namespace: "{{PROJECT_NAME}}"
+configMapGenerator:
+    -   name: domains-urls
+        files:
+            - ../../../../../../{{DOMAINS_URLS_FILEPATH}}

@@ -40,6 +40,10 @@ for key in "${!ENVIRONMENT_VARIABLES[@]}"; do
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
 
+        # Migration Job - First deploy with demo data
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+
         # Migration Job - Continuous deploy
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""

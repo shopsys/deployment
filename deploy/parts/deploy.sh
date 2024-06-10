@@ -13,6 +13,7 @@ assertVariable "DEPLOY_REGISTER_PASSWORD"
 assertVariable "BASIC_AUTH_PATH"
 assertVariable "ENABLE_AUTOSCALING"
 assertVariable "RUNNING_PRODUCTION"
+FIRST_DEPLOY_LOAD_DEMO_DATA=${FIRST_DEPLOY_LOAD_DEMO_DATA:-0}
 
 echo "Prepare namespace to run project:"
 
@@ -74,6 +75,9 @@ if [ $FIRST_DEPLOY -eq "0" ]; then
     KUSTOMIZE_FOLDER="continuous-deploy"
 else
     KUSTOMIZE_FOLDER="first-deploy"
+    if [ ${FIRST_DEPLOY_LOAD_DEMO_DATA} -eq "1" ]; then
+        KUSTOMIZE_FOLDER="first-deploy-with-demo-data"
+    fi
 fi
 
 if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
