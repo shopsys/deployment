@@ -88,6 +88,9 @@ spec:
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     lifecycle:
+                        postStart:
+                            exec:
+                                command: ["/var/www/html/phing", "-S", "warmup"]
                         preStop:
                             exec:
                                 command:

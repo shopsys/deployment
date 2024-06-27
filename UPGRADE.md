@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.0.3 to v3.0.4
+
+- Warmup Symfony cache after start php container ([#18](https://github.com/shopsys/deployment/pull/18))
+
 ## Upgrade from v3.0.0 to v3.0.1
 
 - fix incorrect order of redirect requests ([#15](https://github.com/shopsys/deployment/pull/15))
