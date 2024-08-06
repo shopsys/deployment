@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.1.0 to v3.2.0
+
+- upgraded PHP-FPM and Nginx configuration ([#19](https://github.com/shopsys/deployment/pull/19))
+
 ## Upgrade from v3.0.4 to v3.1.0
 
 - added social-network url for redirecting to backend ([#17](https://github.com/shopsys/deployment/pull/17))
