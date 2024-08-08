@@ -94,5 +94,7 @@ function create_consumer_manifests() {
         sed -i "s|{{REPLICAS_COUNT}}|${REPLICAS_COUNT}|g" "${CONSUMER_MANIFEST_PATH}"
 
         sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/kustomization.yaml"
+        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/kustomization.yaml"
+        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/kustomization.yaml"
     done
 }
