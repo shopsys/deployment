@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.1 to v3.2.2
+
+- upgraded nginx to version 1.27.0 ([#21](https://github.com/shopsys/deployment/pull/21))
+
 ## Upgrade from v3.2.0 to v3.2.1
 
 - consumer manifests are created properly for the first deploy ([#20](https://github.com/shopsys/deployment/pull/20))
