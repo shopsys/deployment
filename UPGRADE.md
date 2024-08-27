@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.2 to v3.2.3
+
+- implemented script to send slack notification about deployment process ([#23](https://github.com/shopsys/deployment/pull/23))
+
 ## Upgrade from v3.2.1 to v3.2.2
 
 - upgraded nginx to version 1.27.0 ([#21](https://github.com/shopsys/deployment/pull/21))

@@ -17,6 +17,8 @@ FIRST_DEPLOY_LOAD_DEMO_DATA=${FIRST_DEPLOY_LOAD_DEMO_DATA:-0}
 
 echo "Prepare namespace to run project:"
 
+slack_notification "start"
+
 echo -n "    Create namespace "
 runCommand "SKIP" "kubectl create namespace ${PROJECT_NAME}"
 
@@ -120,6 +122,7 @@ if [ ${MIGRATION_COMPLETE_EXIT_CODE} -eq 1 ]; then
     echo -e "section_start:`date +%s`:migrate_application_logs_section\r\e[0KLogs from migration application"
     kubectl logs job/migrate-application --namespace=${PROJECT_NAME}
     echo -e "section_end:`date +%s`:migrate_application_logs_section\r\e[0K"
+    slack_notification "error"
     exit 1
 else
     echo -e "[${GREEN}OK${NO_COLOR}]"
@@ -218,7 +221,10 @@ if [ ${DISABLE_WEBSITE_RUNNING_CHECK} = false ]; then
             echo "URL could not be checked due to custom HTTP auth. Please check URL manually: https://${DOMAIN_HOSTNAME_1}"
         else
             echo -e "[${RED}ERROR${NO_COLOR}]"
+            slack_notification "error"
             exit 1
         fi
     fi
 fi
+
+slack_notification "end"
