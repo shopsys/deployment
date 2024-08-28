@@ -13,6 +13,7 @@
 ## Upgrade from v3.2.2 to v3.2.3
 
 - implemented script to send slack notification about deployment process ([#23](https://github.com/shopsys/deployment/pull/23))
+- updated fpm workers and set terminate timeout ([#24](https://github.com/shopsys/deployment/pull/24))
 
 ## Upgrade from v3.2.1 to v3.2.2
 

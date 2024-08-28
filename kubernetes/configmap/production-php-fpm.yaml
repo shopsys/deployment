@@ -15,8 +15,13 @@ data:
 
         listen = 127.0.0.1:9000
 
-        pm = static
-        pm.max_children = 8
-        pm.max_requests = 1000
+        pm = dynamic
+        pm.max_children = 20
+        pm.start_servers = 5
+        pm.min_spare_servers = 5
+        pm.max_spare_servers = 10
+        pm.max_requests = 400
+
+        request_terminate_timeout = 60s
 
         access.log = /dev/null
