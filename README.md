@@ -256,3 +256,36 @@ You need only to add IP address to `deploy/deploy-project.sh` to `WHITELIST_IPS`
 WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
 ```
 
+### Notify about deployment on Slack
+
+You can enable automatic notification of your deployment directly into Slack channel. It has some features:
+
+1. Notify about starting of deployment with a preview of features
+
+![Notify about starting of deployment with preview of features](./docs/images/slack-deploy-start.png)
+
+> [!TIP]
+> If you are using Jira and you use `[ABC-123]` in the commit message, it will automatically create a link to the URL that is specified by `JIRA_URL` environment variable
+
+> [!TIP]
+> Script will exclude commits that contain `!ignore` keyword
+
+2. Notify about the end of deployment. There are two possible alerts - Success and Error
+
+![Notify about end of deployment](./docs/images/slack-deploy-end.png)
+
+This script works only with Gitlab and Slack, but you can override `deploy/slack-notification.py` if you want to change behavior. For Slack, you have to create some Slack App with permissions (`chat:write`, `chat:write.public`).
+
+There has to be set some environment variables list in the table bellow:
+
+| ENVIRONMENT VARIABLE  | Additional information |
+| -------------         | -------------          |
+| `CI_API_V4_URL` | Automatic by Gitlab    |
+| `CI_PROJECT_ID` | Automatic by Gitlab    |
+| `CI_JOB_URL` | Automatic by Gitlab    |
+| `CI_COMMIT_SHA` | Automatic by Gitlab    |
+| `API_TOKEN` | Token for Gitlab API that has access to read deployments    |
+| `JIRA_URL` | Set URL for link Jira ID to Jira.   |
+| `SLACK_TOKEN` | Slack Bot User OAuth Token    |
+| `SLACK_CHANNEL` | Channel ID to post messages into. This variable should be set only for production Environment   |
+| `SLACK_DISABLE_CHANGES` | If set to `true`, no message with changes will be posted   |

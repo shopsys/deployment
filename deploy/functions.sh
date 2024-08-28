@@ -25,6 +25,12 @@ function containsElement () {
     return 1
 }
 
+function slack_notification() {
+    if [ -n "${SLACK_CHANNEL}" ]; then
+        python ${DEPLOY_TARGET_PATH}/slack-notification.py "$1"
+    fi
+}
+
 function runCommand() {
     if LAST_COMMAND_OUTPUT=$(eval "${2} 2>&1" 2>&1)
     then
@@ -34,6 +40,7 @@ function runCommand() {
             echo -e "[${RED}ERROR${NO_COLOR}]"
             echo ""
             echo "${LAST_COMMAND_OUTPUT}"
+            slack_notification "error"
             exit 1
         else
             echo -e "[${YELLOW}${1}${NO_COLOR}]"
@@ -98,3 +105,8 @@ function create_consumer_manifests() {
         sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/kustomization.yaml"
     done
 }
+
+# Install package for slack notification
+if [ -n "${SLACK_CHANNEL}" ]; then
+    pip install requests
+fi
