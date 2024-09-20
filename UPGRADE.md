@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.4 to v3.2.5
+
+- returns only static content from vshosting CDN ([#25](https://github.com/shopsys/deployment/pull/25))
+
 ## Upgrade from v3.2.3 to v3.2.4
 
 - nginx app location for customer uploaded file added ([#21](https://github.com/shopsys/deployment/pull/21))
