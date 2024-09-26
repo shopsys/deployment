@@ -107,6 +107,7 @@ If you want to define your custom variables see [Define custom variables](#defin
 | RABBITMQ_DEFAULT_USER        | rabbitadmin                      | Default user used for RabbitMQ and the management service                                                                   |              All |
 | RABBITMQ_DEFAULT_PASS        | *******                          | Password for the default RabbitMQ user                                                                                      |              All |
 | RABBITMQ_IP_WHITELIST        | 123.456.123.422, 423.534.223.234 | IP Addresses (separated by comma) for which is the RabbitMQ Management accessible                                           |              All |
+| WHITELIST_IPS        | 1.2.3.4, 11.23.33.44, 123.11.0.0/16 | IP Addresses (separated by comma) for which HTTP authorization is not required                                           |              production/devel |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
