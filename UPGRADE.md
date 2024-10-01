@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.5 to v3.2.6
+
+- blocked dynamic content on CDN now returns 403 code ([#27](https://github.com/shopsys/deployment/pull/27))
+
 ## Upgrade from v3.2.4 to v3.2.5
 
 - returns only static content from vshosting CDN ([#25](https://github.com/shopsys/deployment/pull/25))
