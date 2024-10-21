@@ -40,7 +40,7 @@ def parse_change(change: str) -> str:
     if jira_url is None:
         return change
 
-    match = re.search(r'\[([a-zA-Z]+-\d+)\]', change)
+    match = re.search(r'\[([a-zA-Z0-9]+-\d+)\]', change)
     if match:
         ticket_id = match.group(1)
         link = f"<{jira_url}{ticket_id}|[{ticket_id}]>"
