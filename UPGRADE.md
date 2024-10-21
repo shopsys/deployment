@@ -10,6 +10,12 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.6 to v3.2.7
+
+- upgraded PHP-FPM and Nginx configuration ([#29](https://github.com/shopsys/deployment/pull/29))
+  - If you are using `shopsys/kubernetes-buildpack:1.1` in your Gitlab CI pipeline, update it to `shopsys/kubernetes-buildpack:1.2`
+  - This upgrade will work only with kubectl client in version 1.25+ (Upgraded in `shopsys/kubernetes-buildpack:1.2`)
+
 ## Upgrade from v3.2.5 to v3.2.6
 
 - blocked dynamic content on CDN now returns 403 code ([#27](https://github.com/shopsys/deployment/pull/27))

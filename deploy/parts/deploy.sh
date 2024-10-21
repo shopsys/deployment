@@ -161,8 +161,8 @@ fi
 echo -n "    Deploy Webserver and PHP-FPM container with Storefront"
 runCommand "ERROR" "kustomize build --load_restrictor none  \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\" | kubectl apply -f -"
 
-echo -n "    Waiting for start new Webserver and PHP-FPM container "
-runCommand "ERROR" "kubectl rollout status --namespace=${PROJECT_NAME} deployment/webserver-php-fpm --watch"
+echo -n "    Waiting for start new PHP-FPM and Storefront container (In case of fail you need to manually check what is state of application)"
+runCommand "ERROR" "kubectl rollout status --namespace=${PROJECT_NAME} deployment/webserver-php-fpm deployment/storefront --watch"
 
 if [ ${ENABLE_AUTOSCALING} = true ]; then
     echo -n "    Deploy Horizontal pod autoscaler for Backend "
