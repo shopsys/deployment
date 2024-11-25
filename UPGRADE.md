@@ -10,6 +10,11 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.7 to v3.2.9
+
+- Added routes to Nginx ([Commit](https://github.com/shopsys/deployment/commit/5b378a3ee1131fed8ac2821158f03f667db19dcb))
+- `RunAsUser` was removed from Kubernetes manifests ([#30](https://github.com/shopsys/deployment/pull/30))
+
 ## Upgrade from v3.2.6 to v3.2.7
 
 - upgraded PHP-FPM and Nginx configuration ([#29](https://github.com/shopsys/deployment/pull/29))

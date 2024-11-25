@@ -71,8 +71,6 @@ spec:
             initContainers:
                 -   name: copy-source-codes-to-volume
                     image: "{{TAG}}"
-                    securityContext:
-                        runAsUser: 33
                     command: ["sh", "-c", "cp -r -n /var/www/html/. /tmp/source-codes"]
                     volumeMounts:
                         -   name: source-codes
@@ -83,8 +81,6 @@ spec:
             containers:
                 -   image: "{{TAG}}"
                     name: php-fpm
-                    securityContext:
-                        runAsUser: 33
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     lifecycle:

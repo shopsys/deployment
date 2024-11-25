@@ -23,8 +23,6 @@ spec:
                             friendly-urls-generate
                             domains-urls-replace
                             elasticsearch-export
-                    securityContext:
-                        runAsUser: 33
                     volumeMounts:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}

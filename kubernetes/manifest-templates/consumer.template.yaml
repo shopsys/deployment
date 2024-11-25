@@ -32,8 +32,6 @@ spec:
             containers:
                 -   image: "{{TAG}}"
                     name: consumer-{{NAME}}
-                    securityContext:
-                        runAsUser: 33
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     command:

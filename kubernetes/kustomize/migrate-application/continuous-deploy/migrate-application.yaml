@@ -13,8 +13,6 @@ spec:
                 -   name: migrate-application
                     image: "{{TAG}}"
                     command: ["sh", "-c", "cd /var/www/html && ./phing -verbose db-migrations-count-with-maintenance build-deploy-part-2-db-dependent"]
-                    securityContext:
-                        runAsUser: 33
                     volumeMounts:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
