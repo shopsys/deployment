@@ -42,7 +42,7 @@ spec:
                     imagePullPolicy: Always
                     workingDir: /var/www/html
                     command: ["/bin/sh","-c"]
-                    args: ["cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && cron && stdbuf -o0 tail -n +1 -f /tmp/log-pipe"]
+                    args: ["cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && crontab -u root /var/spool/cron/template && { crond || cron; } && stdbuf -o0 tail -n +1 -f /tmp/log-pipe"]
                     lifecycle:
                         preStop:
                             exec:
@@ -54,7 +54,7 @@ spec:
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
                             subPath: "{{DOMAINS_URLS_FILENAME}}"
                         -   name: cron-list
-                            mountPath: /etc/cron.d/cron
+                            mountPath: /var/spool/cron/template
                             subPath: cron
                         -   name: cron-env
                             mountPath: /root/.project_env.sh

@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.2.9 to v3.3.0
+
+- Cron can run under Alpine Linux ([#31](https://github.com/shopsys/deployment/pull/31))
+
 ## Upgrade from v3.2.7 to v3.2.9
 
 - Added routes to Nginx ([Commit](https://github.com/shopsys/deployment/commit/5b378a3ee1131fed8ac2821158f03f667db19dcb))

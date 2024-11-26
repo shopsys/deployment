@@ -58,7 +58,7 @@ if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
     echo -e "[${GREEN}OK${NO_COLOR}]"
 fi
 
-DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[0].metadata.name}') || true
+DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}') || true
 
 if [[ -n ${DEPLOYED_CRON_POD} ]]; then
     echo -n "Lock crons to prevent run next iteration "
