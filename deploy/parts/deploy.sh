@@ -184,7 +184,7 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
 fi
 
-RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[0].metadata.name}')
+RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}')
 
 echo -n "Disable maintenance page "
 runCommand "ERROR" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing maintenance-off"
