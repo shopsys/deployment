@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.3.0 to v3.3.1
+
+- Finding running container for after deploy tasks is fixed ([#33](https://github.com/shopsys/deployment/pull/31))
+
 ## Upgrade from v3.2.9 to v3.3.0
 
 - Cron can run under Alpine Linux ([#31](https://github.com/shopsys/deployment/pull/31))
