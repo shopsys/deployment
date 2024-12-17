@@ -7,7 +7,7 @@ assertVariable "CONFIGURATION_TARGET_PATH"
 assertVariable "S3_ENDPOINT"
 
 if [ -z ${REDIS_VERSION} ]; then
-  REDIS_VERSION='redis:7.0-alpine'
+  REDIS_VERSION='redis:7.4-alpine'
 fi
 
 VARS+=(REDIS_VERSION)

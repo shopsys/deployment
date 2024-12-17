@@ -10,9 +10,14 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.3.1 to v3.3.2
+
+- Redis was upgraded to version 7.4-alpine ([#34](https://github.com/shopsys/deployment/pull/34))
+    - If you are using older Redis version then define `REDIS_VERSION='redis:7.0-alpine'` with using version in your `deploy-project.sh` file
+
 ## Upgrade from v3.3.0 to v3.3.1
 
-- Finding running container for after deploy tasks is fixed ([#33](https://github.com/shopsys/deployment/pull/31))
+- Finding running container for after deploy tasks is fixed ([#33](https://github.com/shopsys/deployment/pull/33))
 
 ## Upgrade from v3.2.9 to v3.3.0
 
