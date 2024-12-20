@@ -12,7 +12,7 @@ spec:
             containers:
                 -   name: migrate-application
                     image: "{{TAG}}"
-                    command: ["sh", "-c", "cd /var/www/html && ./phing cluster-first-deploy"]
+                    command: ["sh", "-c", "cd /var/www/html && sleep 30 && ./phing cluster-first-deploy"]
                     volumeMounts:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}

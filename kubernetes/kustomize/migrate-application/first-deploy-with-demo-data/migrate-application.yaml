@@ -15,7 +15,7 @@ spec:
                     command:
                         - sh
                         - -c
-                        - cd /var/www/html &&
+                        - cd /var/www/html && sleep 30 &&
                             ./phing 
                             cluster-first-deploy 
                             db-fixtures-demo
