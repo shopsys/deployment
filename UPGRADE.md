@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.3.2 to v3.3.3
+
+- Fix problems with deployment ([#35](https://github.com/shopsys/deployment/pull/35))
+
 ## Upgrade from v3.3.1 to v3.3.2
 
 - Redis was upgraded to version 7.4-alpine ([#34](https://github.com/shopsys/deployment/pull/34))
