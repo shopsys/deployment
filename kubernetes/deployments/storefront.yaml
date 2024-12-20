@@ -36,7 +36,7 @@ spec:
                             exec:
                                 command:
                                     - sleep
-                                    - '5'
+                                    - '10'
                     resources:
                         limits:
                             cpu: "2"
@@ -56,5 +56,6 @@ spec:
                         initialDelaySeconds: 5
                         periodSeconds: 5
                         timeoutSeconds: 5
+            terminationGracePeriodSeconds: 60
             imagePullSecrets:
                 -   name: dockerregistry

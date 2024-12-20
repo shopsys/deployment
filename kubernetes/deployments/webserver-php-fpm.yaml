@@ -90,8 +90,9 @@ spec:
                         preStop:
                             exec:
                                 command:
-                                    - sleep
-                                    - '5'
+                                    - sh
+                                    - '-c'
+                                    - sleep 10 && kill -SIGQUIT 1
                     volumeMounts:
                         -   name: source-codes
                             mountPath: /var/www/html
@@ -157,5 +158,6 @@ spec:
                         requests:
                             cpu: "0.5"
                             memory: 500Mi
+            terminationGracePeriodSeconds: 120
             imagePullSecrets:
                 -   name: dockerregistry
