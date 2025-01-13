@@ -199,17 +199,19 @@ if [ -z ${DISABLE_WEBSITE_RUNNING_CHECK} ]; then
     DISABLE_WEBSITE_RUNNING_CHECK=false
 fi
 
-if [ ${DISABLE_WEBSITE_RUNNING_CHECK} = false ]; then
-    echo -n "Check if website is running "
 
-    if [ ${RUNNING_PRODUCTION} -eq "1" ] && ! containsElement ${DOMAIN_HOSTNAME_1} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
-        CURL_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://${DOMAIN_HOSTNAME_1})
+function checkDomainIsRunning() {
+    local domainHostname=$1
+    echo -n "Check if website is running (${domainHostname}) "
+
+    if [ ${RUNNING_PRODUCTION} -eq "1" ] && ! containsElement ${domainHostname} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
+        CURL_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://${domainHostname})
     else
         if [ -z ${HTTP_AUTH_CREDENTIALS} ]; then
             HTTP_AUTH_CREDENTIALS="username:password"
         fi
 
-        CURL_RETURN_CODE=$(curl --user ${HTTP_AUTH_CREDENTIALS} -s -o /dev/null -w "%{http_code}" https://${DOMAIN_HOSTNAME_1})
+        CURL_RETURN_CODE=$(curl --user ${HTTP_AUTH_CREDENTIALS} -s -o /dev/null -w "%{http_code}" https://${domainHostname})
     fi
 
     if [ ${CURL_RETURN_CODE} -eq "200" ]; then
@@ -218,13 +220,20 @@ if [ ${DISABLE_WEBSITE_RUNNING_CHECK} = false ]; then
         if [ ${CURL_RETURN_CODE} -eq "401" ]; then
             echo -e "[${YELLOW}SKIP${NO_COLOR}]"
             echo ""
-            echo "URL could not be checked due to custom HTTP auth. Please check URL manually: https://${DOMAIN_HOSTNAME_1}"
+            echo "URL could not be checked due to custom HTTP auth. Please check URL manually: https://${domainHostname}"
         else
             echo -e "[${RED}ERROR${NO_COLOR}]"
             slack_notification "error"
             exit 1
         fi
     fi
+}
+
+if [ ${DISABLE_WEBSITE_RUNNING_CHECK} = false ]; then
+    for domain in "${DOMAINS[@]}"; do
+        domainHostname="${!domain}"
+        checkDomainIsRunning "$domainHostname"
+    done
 fi
 
 slack_notification "end"
