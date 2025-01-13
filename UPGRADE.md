@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.3.3 to v3.3.4
+
+- Check all domains at the end of deploy process ([#37](https://github.com/shopsys/deployment/pull/37))
+
 ## Upgrade from v3.3.2 to v3.3.3
 
 - Fix problems with deployment ([#35](https://github.com/shopsys/deployment/pull/35))
