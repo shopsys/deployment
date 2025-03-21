@@ -17,6 +17,11 @@ spec:
             app: consumer-{{NAME}}
     template:
         metadata:
+            annotations:
+                logging/enabled: "true"
+                project/app: "{{NAME}}"
+                project/environment: "{{PROJECT_ENVIRONMENT}}"
+                project/name: "{{NAME_OF_PROJECT}}"
             labels:
                 app: consumer-{{NAME}}
         spec:

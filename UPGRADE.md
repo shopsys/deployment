@@ -14,6 +14,7 @@
 
 - Upgrade manifests for newer versions of kubernetes ([#39](https://github.com/shopsys/deployment/pull/39))
 - upgrade rabbitmq ingress manifest ([#40](https://github.com/shopsys/deployment/pull/40))
+- enable logging for consumers ([#41](https://github.com/shopsys/deployment/pull/41))
 
 ## Upgrade from v3.3.3 to v3.3.4
 
