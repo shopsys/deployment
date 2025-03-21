@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v3.3.4 to v4.0.0
+
+- Upgrade manifests for newer versions of kubernetes ([#39](https://github.com/shopsys/deployment/pull/39))
+
 ## Upgrade from v3.3.3 to v3.3.4
 
 - Check all domains at the end of deploy process ([#37](https://github.com/shopsys/deployment/pull/37))
