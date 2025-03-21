@@ -17,6 +17,11 @@ spec:
             app: webserver-php-fpm
     template:
         metadata:
+            annotations:
+                logging/enabled: "true"
+                project/app: "app"
+                project/environment: "{{PROJECT_ENVIRONMENT}}"
+                project/name: "{{NAME_OF_PROJECT}}"
             labels:
                 app: webserver-php-fpm
         spec:
