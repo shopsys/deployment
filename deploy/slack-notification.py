@@ -73,7 +73,7 @@ def start_deploy() -> None:
 
 def end_deploy(end_type: Type) -> None:
     if end_type == Type.ERROR:
-        text = f":x: :skull_and_crossbones: Deployment ended with error.\n <{os.getenv('DOMAIN_HOSTNAME_1', 'https://example.com')}|Check your page> and <{os.getenv('CI_JOB_URL', 'https://example.com')}|View deployment pipeline> <!here>"
+        text = f":x: :skull_and_crossbones: Deployment ended with error.\n <https://{os.getenv('DOMAIN_HOSTNAME_1', 'example.com')}|Check your page> and <{os.getenv('CI_JOB_URL', 'https://example.com')}|View deployment pipeline> <!here>"
         call_slack(text)
 
     else:
