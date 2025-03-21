@@ -9,6 +9,11 @@ spec:
             app: redis
     template:
         metadata:
+            annotations:
+                logging/enabled: "false"
+                project/app: "redis"
+                project/environment: "{{PROJECT_ENVIRONMENT}}"
+                project/name: "{{NAME_OF_PROJECT}}"
             labels:
                 app: redis
         spec:

@@ -22,7 +22,7 @@ function deploy() {
         ["DATABASE_PASSWORD"]=${POSTGRES_DATABASE_PASSWORD}
 
         ["S3_ENDPOINT"]=${S3_ENDPOINT}
-        ["S3_ACCESS_KEY"]=${S3_ACCESS_KEY}
+        ["S3_ACCESS_KEY"]=${PROJECT_NAME}
         ["S3_SECRET"]=${S3_SECRET}
         ["S3_BUCKET_NAME"]=${PROJECT_NAME}
 

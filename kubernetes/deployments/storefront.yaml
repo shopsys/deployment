@@ -9,6 +9,11 @@ spec:
             app: storefront
     template:
         metadata:
+            annotations:
+                logging/enabled: "false"
+                project/app: "storefront"
+                project/environment: "{{PROJECT_ENVIRONMENT}}"
+                project/name: "{{NAME_OF_PROJECT}}"
             labels:
                 app: storefront
         spec:

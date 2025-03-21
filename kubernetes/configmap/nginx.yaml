@@ -144,8 +144,6 @@ data:
                             return 418;
                         }
 
-                        # VSHosting DNS
-                        resolver                78.24.12.150;
                         proxy_intercept_errors  on;
                         error_page              403 404 = @app;
 
@@ -157,8 +155,6 @@ data:
                     }
 
                     location ~ ^/content/ {
-                        # VSHosting DNS
-                        resolver                78.24.12.150;
                         proxy_intercept_errors  on;
                         error_page              404 = @app;
 

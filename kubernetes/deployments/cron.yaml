@@ -17,6 +17,11 @@ spec:
             app: cron
     template:
         metadata:
+            annotations:
+                logging/enabled: "true"
+                project/app: "cron"
+                project/environment: "{{PROJECT_ENVIRONMENT}}"
+                project/name: "{{NAME_OF_PROJECT}}"
             labels:
                 app: cron
         spec:
