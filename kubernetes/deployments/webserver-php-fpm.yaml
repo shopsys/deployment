@@ -116,7 +116,7 @@ spec:
                             cpu: "0.5"
                             memory: 1Gi
 
-                -   image: nginx:1.27.0-alpine
+                -   image: nginx:1.27-alpine
                     name: webserver
                     ports:
                         -   containerPort: 8080
