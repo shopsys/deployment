@@ -48,6 +48,8 @@ spec:
                             chmod 666 $PIPE
                             stdbuf -o0 tail -n +1 -f $PIPE &
                             
+                            sleep 5
+                            
                             while [ ! -f /tmp/stop_consumer ]; do 
                                 php /var/www/html/bin/console messenger:consume {{TRANSPORT_NAMES}} --time-limit=300 --quiet
                                 sleep 2
