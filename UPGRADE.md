@@ -12,6 +12,7 @@
 
 ## Upgrade from v4.0.0 to v4.0.1
 
+- Do not log notice messages after PHP-FPM starts ([#42](https://github.com/shopsys/deployment/pull/42))
 - Refactor consumers logging and restarting ([#43](https://github.com/shopsys/deployment/pull/43))
 
 ## Upgrade from v3.3.4 to v4.0.0
