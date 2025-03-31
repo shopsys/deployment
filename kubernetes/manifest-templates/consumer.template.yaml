@@ -33,20 +33,31 @@ spec:
                     secret:
                         secretName: fe-api-keys
                         defaultMode: 0644
-            terminationGracePeriodSeconds: 3600
+            terminationGracePeriodSeconds: 300
             containers:
                 -   image: "{{TAG}}"
                     name: consumer-{{NAME}}
                     imagePullPolicy: Always
                     workingDir: /var/www/html
-                    command:
-                        - /bin/sh
-                        - -c
-                        - sleep 5 && ./phing warmup && bin/console messenger:consume {{TRANSPORT_NAMES}} --time-limit=600 -vv
+                    command: ["/bin/sh", "-c"]
+                    args:
+                        - |
+                            PIPE=/tmp/log-pipe
+                            rm -rf $PIPE
+                            mkfifo $PIPE
+                            chmod 666 $PIPE
+                            stdbuf -o0 tail -n +1 -f $PIPE &
+                            
+                            sleep 5
+                            
+                            while [ ! -f /tmp/stop_consumer ]; do 
+                                php /var/www/html/bin/console messenger:consume {{TRANSPORT_NAMES}} --time-limit=300 --quiet
+                                sleep 2
+                            done
                     lifecycle:
                         preStop:
                             exec:
-                                command: ["php", "./bin/console messenger:stop-workers"]
+                                command: ["/bin/sh", "-c", "touch /tmp/stop_consumer && php bin/console messenger:stop-workers"]
                     volumeMounts:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
