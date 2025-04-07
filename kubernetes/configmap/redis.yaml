@@ -9,3 +9,11 @@ data:
         loglevel notice
         maxmemory 2200mb
         maxmemory-policy volatile-lru
+        
+        # Disable AOF and RDB persistence as we keep everything in memory only, see https://redis.io/topics/persistence
+        appendonly no
+        # Disable RDB persistence, AOF persistence already disabled above.
+        save ""
+        
+        # Enabling active memory defragmentation
+        activedefrag yes

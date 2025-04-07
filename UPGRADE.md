@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.1 to v4.0.2
+
+- Optimize Redis configuration ([#44](https://github.com/shopsys/deployment/pull/44))
+
 ## Upgrade from v4.0.0 to v4.0.1
 
 - Do not log notice messages after PHP-FPM starts ([#42](https://github.com/shopsys/deployment/pull/42))
