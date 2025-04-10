@@ -14,6 +14,7 @@
 
 - Minor improvements ([#45](https://github.com/shopsys/deployment/pull/45))
   - Containers are pulled only if are not already downloaded
+  - You can now define your custom rabbitmq URL by `RABBITMQ_DOMAIN_HOSTNAME` variable
 
 ## Upgrade from v4.0.1 to v4.0.2
 
