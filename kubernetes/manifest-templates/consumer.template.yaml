@@ -37,7 +37,7 @@ spec:
             containers:
                 -   image: "{{TAG}}"
                     name: consumer-{{NAME}}
-                    imagePullPolicy: Always
+                    imagePullPolicy: IfNotPresent
                     workingDir: /var/www/html
                     command: ["/bin/sh", "-c"]
                     args:

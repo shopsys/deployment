@@ -86,7 +86,7 @@ spec:
             containers:
                 -   image: "{{TAG}}"
                     name: php-fpm
-                    imagePullPolicy: Always
+                    imagePullPolicy: IfNotPresent
                     workingDir: /var/www/html
                     lifecycle:
                         postStart:
