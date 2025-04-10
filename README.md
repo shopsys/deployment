@@ -211,7 +211,11 @@ Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
   +   ENABLE_AUTOSCALING=true
   ...
   ```
-- If you need more replicas, then specify max replicas with parameter `MAX_PHP_FPM_REPLICAS` (Default are 2 replicas)
+- If you need more replicas, then you can adjust those variables (default values are set to 2):
+  - `MIN_PHP_FPM_REPLICAS`
+  - `MAX_PHP_FPM_REPLICAS`
+  - `MIN_STOREFRONT_REPLICAS`
+  - `MAX_STOREFRONT_REPLICAS`
 
 ### How to launch only some domains
   Add to `deploy/deploy-project.sh` new array `FORCE_HTTP_AUTH_IN_PRODUCTION` with domains which should be not accessible without HTTP auth:
