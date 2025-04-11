@@ -10,6 +10,13 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.2 to v4.0.3
+
+- Minor improvements ([#45](https://github.com/shopsys/deployment/pull/45))
+  - Containers are pulled only if are not already downloaded
+  - You can now define your custom rabbitmq URL by `RABBITMQ_DOMAIN_HOSTNAME` variable
+  - Storefront autoscaling is now managed separately by `MIN_STOREFRONT_REPLICAS` and `MAX_STOREFRONT_REPLICAS` variables
+
 ## Upgrade from v4.0.1 to v4.0.2
 
 - Optimize Redis configuration ([#44](https://github.com/shopsys/deployment/pull/44))
