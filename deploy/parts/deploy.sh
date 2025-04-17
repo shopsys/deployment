@@ -205,13 +205,13 @@ function checkDomainIsRunning() {
     echo -n "Check if website is running (${domainHostname}) "
 
     if [ ${RUNNING_PRODUCTION} -eq "1" ] && ! containsElement ${domainHostname} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
-        CURL_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://${domainHostname})
+        CURL_RETURN_CODE=$(curl -L -s -o /dev/null -w "%{http_code}" https://${domainHostname})
     else
         if [ -z ${HTTP_AUTH_CREDENTIALS} ]; then
             HTTP_AUTH_CREDENTIALS="username:password"
         fi
 
-        CURL_RETURN_CODE=$(curl --user ${HTTP_AUTH_CREDENTIALS} -s -o /dev/null -w "%{http_code}" https://${domainHostname})
+        CURL_RETURN_CODE=$(curl --user ${HTTP_AUTH_CREDENTIALS} -L -s -o /dev/null -w "%{http_code}" https://${domainHostname})
     fi
 
     if [ ${CURL_RETURN_CODE} -eq "200" ]; then
