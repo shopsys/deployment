@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.3 to v4.0.4
+
+- Follow redirects when checking if domains is running ([#46](https://github.com/shopsys/deployment/pull/46))
+
 ## Upgrade from v4.0.2 to v4.0.3
 
 - Minor improvements ([#45](https://github.com/shopsys/deployment/pull/45))
