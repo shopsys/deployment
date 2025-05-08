@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
     name: redis
+    labels:
+        prometheus-exporter: true
 spec:
     selector:
         app: redis
@@ -9,3 +11,6 @@ spec:
         -   name: redis
             port: 6379
             targetPort: 6379
+        -   name: prometheus-exporter
+            port: 9121
+            targetPort: 9121
