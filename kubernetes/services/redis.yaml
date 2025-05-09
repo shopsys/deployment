@@ -3,6 +3,7 @@ kind: Service
 metadata:
     name: redis
     labels:
+        app: redis
         prometheus-exporter: 'true'
 spec:
     selector:
