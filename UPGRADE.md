@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.5 to v4.0.6
+
+- prepare prometheus exporters for Redis and RabbitMQ ([#48](https://github.com/shopsys/deployment/pull/48))
+
 ## Upgrade from v4.0.4 to v4.0.5
 
 - optimize cpu and memory resources ([#47](https://github.com/shopsys/deployment/pull/47))
