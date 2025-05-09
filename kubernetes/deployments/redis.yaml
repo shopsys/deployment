@@ -31,7 +31,7 @@ spec:
                     image: "oliver006/redis_exporter"
                     imagePullPolicy: Always
                     ports:
-                        -   name: prometheus-exporter
+                        -   name: exporter
                             containerPort: 9121
                             protocol: TCP
                     resources:
