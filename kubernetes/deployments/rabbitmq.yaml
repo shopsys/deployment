@@ -31,6 +31,9 @@ spec:
                         -   name: rabbitmq
                             containerPort: 15672
                             protocol: TCP
+                        -   name: prometheus-exporter
+                            containerPort: 15692
+                            protocol: TCP
                     env:
                         -   name: RABBITMQ_DEFAULT_USER
                             value: "{{RABBITMQ_DEFAULT_USER}}"

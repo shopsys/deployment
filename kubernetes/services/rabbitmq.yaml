@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
     name: rabbitmq
+    labels:
+        prometheus-exporter: true
 spec:
     selector:
         app: rabbitmq
@@ -12,3 +14,6 @@ spec:
         -   name: rabbitmq-management
             port: 15672
             targetPort: 15672
+        -   name: prometheus-exporter
+            port: 15692
+            targetPort: 15692
