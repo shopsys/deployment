@@ -3,7 +3,7 @@ kind: Service
 metadata:
     name: rabbitmq
     labels:
-        prometheus-exporter: true
+        prometheus-exporter: 'true'
 spec:
     selector:
         app: rabbitmq
