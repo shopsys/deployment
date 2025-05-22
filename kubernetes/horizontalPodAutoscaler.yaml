@@ -11,9 +11,10 @@ spec:
     minReplicas: 2
     maxReplicas: 2
     metrics:
-        -   type: Resource
-            resource:
+        -   type: ContainerResource
+            containerResource:
                 name: cpu
+                container: php-fpm
                 target:
                     type: Utilization
-                    averageUtilization: 75
+                    averageUtilization: 80
