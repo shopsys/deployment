@@ -48,12 +48,17 @@ if [ "${IS_FE_API_SECRET_GENERATED}" -ne "0" ]; then
     runCommand "ERROR" "kubectl create secret generic fe-api-keys --from-file=private.key=\"${BASE_PATH}/var/private.key\" --from-file=public.key=\"${BASE_PATH}/var/public.key\" -n ${PROJECT_NAME}"
 fi
 
-if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
+if [ "${RUNNING_PRODUCTION}" -eq "0" ] || [ "${DOWNSCALE_RESOURCE:-0}" -eq "1" ]; then
     echo -n "    Replace pods CPU requests to minimum (for Devel cluster only) "
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[1].resources.requests.cpu" "0.01"
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml" "spec.template.spec.containers[1].resources.requests.cpu" "0.01"
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/rabbitmq.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
+
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.memory" "100Mi"
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml" "spec.template.spec.containers[1].resources.requests.memory" "100Mi"
 
     echo -e "[${GREEN}OK${NO_COLOR}]"
 fi

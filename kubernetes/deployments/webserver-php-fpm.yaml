@@ -115,11 +115,11 @@ spec:
                             mountPath: /var/www/html/config/frontend-api
                     resources:
                         limits:
-                            cpu: "3"
-                            memory: 3Gi
+                            cpu: "2"
+                            memory: 2Gi
                         requests:
-                            cpu: "0.2"
-                            memory: 200Mi
+                            cpu: "1"
+                            memory: 1Gi
 
                 -   image: nginx:1.27-alpine
                     name: webserver
@@ -161,8 +161,8 @@ spec:
                             cpu: "0.2"
                             memory: 300Mi
                         requests:
-                            cpu: "0.05"
-                            memory: 50Mi
+                            cpu: "0.1"
+                            memory: 100Mi
             terminationGracePeriodSeconds: 120
             imagePullSecrets:
                 -   name: dockerregistry

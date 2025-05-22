@@ -15,7 +15,7 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     fi
 
     if [ -z ${MAX_PHP_FPM_REPLICAS} ]; then
-        MAX_PHP_FPM_REPLICAS=2
+        MAX_PHP_FPM_REPLICAS=3
     fi
 
     if [ -z ${MIN_STOREFRONT_REPLICAS} ]; then
@@ -23,7 +23,7 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     fi
 
     if [ -z ${MAX_STOREFRONT_REPLICAS} ]; then
-        MAX_STOREFRONT_REPLICAS=2
+        MAX_STOREFRONT_REPLICAS=3
     fi
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml" spec.minReplicas "${MIN_PHP_FPM_REPLICAS}"
