@@ -25,6 +25,21 @@ spec:
             labels:
                 app: consumer-{{NAME}}
         spec:
+            tolerations:
+                -   key: "workload"
+                    operator: "Equal"
+                    value: "background"
+                    effect: "NoSchedule"
+            affinity:
+                nodeAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        -   weight: 100
+                            preference:
+                                matchExpressions:
+                                    -   key: workload
+                                        operator: In
+                                        values:
+                                            - background
             volumes:
                 -   name: domains-urls
                     configMap:

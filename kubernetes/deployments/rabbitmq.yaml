@@ -12,7 +12,21 @@ spec:
             labels:
                 app: rabbitmq
         spec:
+            tolerations:
+                -   key: "workload"
+                    operator: "Equal"
+                    value: "background"
+                    effect: "NoSchedule"
             affinity:
+                nodeAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        -   weight: 100
+                            preference:
+                                matchExpressions:
+                                    -   key: workload
+                                        operator: In
+                                        values:
+                                            - background
                 podAntiAffinity:
                     preferredDuringSchedulingIgnoredDuringExecution:
                         -   weight: 100
