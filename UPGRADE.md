@@ -14,6 +14,7 @@
 
 - Horizontal autoscaler for PHP-FPM now checks only PHP-FPM container ([#49](https://github.com/shopsys/deployment/pull/49))
 - Update resource requests and limits by best practices ([#50](https://github.com/shopsys/deployment/pull/50))
+- Add tolerations to Cron, RabbitMQ and Consumers to be able to run only on selected nodes ([#51](https://github.com/shopsys/deployment/pull/51))
 
 ## Upgrade from v4.0.5 to v4.0.6
 

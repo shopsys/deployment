@@ -293,3 +293,15 @@ There has to be set some environment variables list in the table bellow:
 | `SLACK_TOKEN` | Slack Bot User OAuth Token    |
 | `SLACK_CHANNEL` | Channel ID to post messages into. This variable should be set only for production Environment   |
 | `SLACK_DISABLE_CHANGES` | If set to `true`, no message with changes will be posted   |
+
+### Run background jobs only on selected nodes
+
+Backend pods such as RabbitMQ, Cron and Consumers can be run only on selected nodes. Those pods have already configured tolerations, so you can use taints to select nodes where those pods will be run.
+
+Add taint to nodes where you want to run those pods
+   ```shell
+   kubectl label nodes <node-name> workload=background
+   kubectl taint nodes <node-name> workload=background:NoSchedule
+   ```
+
+Other pods will run on other nodes without this taint.
