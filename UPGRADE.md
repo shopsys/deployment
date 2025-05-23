@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.8 to v4.0.9
+
+- Update allowed IP address pools in nginx.yaml for `location ~ ^/resolve-friendly-url` if you are using custom IP address pools in your cluster
+
 ## Upgrade from v4.0.7 to v4.0.8
 
 - Remove CPU request limits ([#53](https://github.com/shopsys/deployment/pull/53))
