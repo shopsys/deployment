@@ -17,4 +17,4 @@ spec:
                 container: php-fpm
                 target:
                     type: Utilization
-                    averageUtilization: 80
+                    averageUtilization: 120

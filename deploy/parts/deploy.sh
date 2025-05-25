@@ -61,6 +61,20 @@ if [ "${RUNNING_PRODUCTION}" -eq "0" ] || [ "${DOWNSCALE_RESOURCE:-0}" -eq "1" ]
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml" "spec.template.spec.containers[1].resources.requests.memory" "100Mi"
 
     echo -e "[${GREEN}OK${NO_COLOR}]"
+else
+    if [ -v PHP_FPM_CPU_REQUEST ] || [ -v STOREFRONT_CPU_REQUEST ]; then
+        echo -n "    Replace pods CPU requests "
+
+        if [ -v PHP_FPM_CPU_REQUEST ]; then
+            yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "${PHP_FPM_CPU_REQUEST}"
+        fi
+
+        if [ -v STOREFRONT_CPU_REQUEST ]; then
+            yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "${STOREFRONT_CPU_REQUEST}"
+        fi
+
+        echo -e "[${GREEN}OK${NO_COLOR}]"
+    fi
 fi
 
 DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}') || true
