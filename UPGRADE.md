@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.0.7 to v4.0.8
+
+- Remove CPU request limits ([#53](https://github.com/shopsys/deployment/pull/53))
+
 ## Upgrade from v4.0.6 to v4.0.7
 
 - Horizontal autoscaler for PHP-FPM now checks only PHP-FPM container ([#49](https://github.com/shopsys/deployment/pull/49))

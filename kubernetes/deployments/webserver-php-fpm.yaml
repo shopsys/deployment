@@ -115,11 +115,10 @@ spec:
                             mountPath: /var/www/html/config/frontend-api
                     resources:
                         limits:
-                            cpu: "2"
                             memory: 2Gi
                         requests:
-                            cpu: "1"
-                            memory: 1Gi
+                            cpu: "500m"
+                            memory: 500Mi
 
                 -   image: nginx:1.27-alpine
                     name: webserver
@@ -158,10 +157,9 @@ spec:
                                 ]
                     resources:
                         limits:
-                            cpu: "0.2"
                             memory: 300Mi
                         requests:
-                            cpu: "0.1"
+                            cpu: "50m"
                             memory: 100Mi
             terminationGracePeriodSeconds: 120
             imagePullSecrets:

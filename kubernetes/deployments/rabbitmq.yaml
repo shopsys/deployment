@@ -55,8 +55,7 @@ spec:
                             value: "{{RABBITMQ_DEFAULT_PASS}}"
                     resources:
                         limits:
-                            cpu: "0.3"
                         requests:
-                            cpu: "0.2"
+                            cpu: "20m"
             imagePullSecrets:
                 -   name: dockerregistry
