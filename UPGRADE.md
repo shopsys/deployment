@@ -13,6 +13,7 @@
 ## Upgrade from v4.0.8 to v4.0.9
 
 - Update allowed IP address pools in nginx.yaml for `location ~ ^/resolve-friendly-url` if you are using custom IP address pools in your cluster
+- Added Cloudflare support ([#54](https://github.com/shopsys/deployment/pull/54))
 
 ## Upgrade from v4.0.7 to v4.0.8
 

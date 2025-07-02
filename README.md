@@ -107,6 +107,7 @@ If you want to define your custom variables see [Define custom variables](#defin
 | RABBITMQ_DEFAULT_USER        | rabbitadmin                      | Default user used for RabbitMQ and the management service                                                                   |              All |
 | RABBITMQ_DEFAULT_PASS        | *******                          | Password for the default RabbitMQ user                                                                                      |              All |
 | RABBITMQ_IP_WHITELIST        | 123.456.123.422, 423.534.223.234 | IP Addresses (separated by comma) for which is the RabbitMQ Management accessible                                           |              All |
+| USING_CLOUDFLARE             | _1_ OR _0_                       | Set to 1 if your site is using Cloudflare (enables IP whitelisting)                                                         | production/devel |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
@@ -259,6 +260,22 @@ You need only to add IP address to `deploy/deploy-project.sh` to `WHITELIST_IPS`
 #              Some IP   Another IP    Some service
 WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
 ```
+
+### Configure Cloudflare
+
+If your site is using Cloudflare, you can restrict direct access and allow traffic only through Cloudflare:
+
+1. Enable Cloudflare protection by setting the environment variable `USING_CLOUDFLARE=1`.
+2. By default, ALL domains will be protected. If you need to exclude specific domains from Cloudflare protection (e.g., for direct access or testing), add them to the `CLOUDFLARE_EXCLUDED_DOMAINS` array:
+   ```diff
+   ...
+   +   CLOUDFLARE_EXCLUDED_DOMAINS=(
+   +       DOMAIN_HOSTNAME_2  # This domain will not have Cloudflare IP restrictions
+   +   )
+   ...
+   ```
+
+This prevents users from bypassing Cloudflare by accessing your origin server directly.
 
 ### Notify about deployment on Slack
 
