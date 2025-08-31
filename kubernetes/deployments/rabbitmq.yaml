@@ -41,7 +41,7 @@ spec:
                                                 - rabbitmq
             containers:
                 -   name: rabbitmq
-                    image: rabbitmq:3.12-management-alpine
+                    image: rabbitmq:4.1-management-alpine
                     ports:
                         -   name: rabbitmq
                             containerPort: 15672
