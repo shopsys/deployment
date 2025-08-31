@@ -1,8 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
     name: rabbitmq
 spec:
+    serviceName: rabbitmq
     replicas: 1
     selector:
         matchLabels:
@@ -40,7 +41,7 @@ spec:
                                                 - rabbitmq
             containers:
                 -   name: rabbitmq
-                    image: rabbitmq:3.12-management-alpine
+                    image: rabbitmq:4.1-management-alpine
                     ports:
                         -   name: rabbitmq
                             containerPort: 15672
@@ -54,8 +55,20 @@ spec:
                         -   name: RABBITMQ_DEFAULT_PASS
                             value: "{{RABBITMQ_DEFAULT_PASS}}"
                     resources:
-                        limits:
                         requests:
                             cpu: "20m"
+                    volumeMounts:
+                        -   name: rabbitmq-data
+                            mountPath: /var/lib/rabbitmq
             imagePullSecrets:
                 -   name: dockerregistry
+    volumeClaimTemplates:
+        -   metadata:
+                name: rabbitmq-data
+            spec:
+                accessModes:
+                    - ReadWriteOnce
+                storageClassName: nfs-client
+                resources:
+                    requests:
+                        storage: 1Gi
