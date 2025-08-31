@@ -57,5 +57,18 @@ spec:
                     resources:
                         requests:
                             cpu: "20m"
+                    volumeMounts:
+                        -   name: rabbitmq-data
+                            mountPath: /var/lib/rabbitmq
             imagePullSecrets:
                 -   name: dockerregistry
+    volumeClaimTemplates:
+        -   metadata:
+                name: rabbitmq-data
+            spec:
+                accessModes:
+                    - ReadWriteOnce
+                storageClassName: nfs-client
+                resources:
+                    requests:
+                        storage: 1Gi
