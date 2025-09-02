@@ -77,9 +77,7 @@ for DOMAIN in ${DOMAINS[@]}; do
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[+].host ${REDIRECT_DOMAIN}
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${REDIRECT_DOMAIN}
 
-    # Initialize whitelist IPs variable
-    FINAL_WHITELIST_IPS=""
-
+    # When domain is not in production we need to whitelist our IPs. But this also enables access outside Cloudflare
     if [ ${RUNNING_PRODUCTION} -ne "1" ] || containsElement ${DOMAIN} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-type\"" basic
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-secret\"" http-auth
@@ -88,15 +86,9 @@ for DOMAIN in ${DOMAINS[@]}; do
         if [ -n "${WHITELIST_IPS}" ]; then
             FINAL_WHITELIST_IPS="${WHITELIST_IPS}"
         fi
-    fi
-
-    # Check if we're using Cloudflare and this domain is not excluded
-    if [ "${USING_CLOUDFLARE}" = "1" ] && ! containsElement ${DOMAIN} ${CLOUDFLARE_EXCLUDED_DOMAINS[@]}; then
-        if [ -n "${FINAL_WHITELIST_IPS}" ]; then
-            # Append Cloudflare IPs to existing whitelist
-            FINAL_WHITELIST_IPS="${FINAL_WHITELIST_IPS},${CLOUDFLARE_IPS}"
-        else
-            # Use only Cloudflare IPs
+    else
+        # If domain is running in production all rules should be configured in Cloudflare so we whitelist only CF IPs
+        if [ "${USING_CLOUDFLARE}" = "1" ] && ! containsElement ${DOMAIN} ${CLOUDFLARE_EXCLUDED_DOMAINS[@]}; then
             FINAL_WHITELIST_IPS="${CLOUDFLARE_IPS}"
         fi
     fi
@@ -105,6 +97,10 @@ for DOMAIN in ${DOMAINS[@]}; do
     if [ -n "${FINAL_WHITELIST_IPS}" ]; then
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/whitelist-source-range\"" "${FINAL_WHITELIST_IPS}"
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/satisfy\"" "any"
+    fi
+
+    if [ "${USING_CLOUDFLARE}" = "1" ] && ! containsElement ${DOMAIN} ${CLOUDFLARE_EXCLUDED_DOMAINS[@]}; then
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/server-snippet\"" "real_ip_header CF-Connecting-IP;"
     fi
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/webserver/kustomization.yaml" resources[+] "../../ingress/${INGRESS_FILENAME}"
