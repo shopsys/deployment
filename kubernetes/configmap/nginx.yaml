@@ -73,8 +73,15 @@ data:
             root /var/www/html/web;
 
             location /health {
-                stub_status  on;
                 access_log   off;
+
+                include fastcgi_params;
+                fastcgi_read_timeout 3s;
+                fastcgi_param SCRIPT_FILENAME /ping;
+                fastcgi_param SCRIPT_NAME     /ping;
+                fastcgi_param REQUEST_METHOD  GET;
+
+                fastcgi_pass php-upstream;
             }
         }
 

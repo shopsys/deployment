@@ -122,8 +122,15 @@ data:
         root /var/www/html/web;
 
         location /health {
-            stub_status  on;
             access_log   off;
+
+            include fastcgi_params;
+            fastcgi_read_timeout 3s;
+            fastcgi_param SCRIPT_FILENAME /ping;
+            fastcgi_param SCRIPT_NAME     /ping;
+            fastcgi_param REQUEST_METHOD  GET;
+
+            fastcgi_pass php-upstream;
         }
     }
 
@@ -351,6 +358,8 @@ data:
     [www]
 
     listen = 127.0.0.1:9000
+    ping.path = /ping
+    ping.response = pong
 
     pm = dynamic
     pm.max_children = 20
@@ -723,10 +732,22 @@ spec:
           preStop:
             exec:
               command:
-              - sh
-              - -c
-              - sleep 10 && kill -SIGQUIT 1
+              - /bin/sh
+              - -lc
+              - sleep 10; kill -QUIT 1 || true
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          tcpSocket:
+            port: 9000
+          timeoutSeconds: 2
         name: php-fpm
+        readinessProbe:
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          tcpSocket:
+            port: 9000
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 2Gi
@@ -758,23 +779,27 @@ spec:
               - -c
               - sleep 5 && /usr/sbin/nginx -s quit
         livenessProbe:
+          failureThreshold: 6
           httpGet:
             path: /health
-            port: 80
+            port: health
           initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
         name: webserver
         ports:
         - containerPort: 8080
           name: http
+        - containerPort: 80
+          name: health
         readinessProbe:
+          failureThreshold: 3
           httpGet:
             path: /health
-            port: 80
-          initialDelaySeconds: 5
+            port: health
+          initialDelaySeconds: 2
           periodSeconds: 5
-          timeoutSeconds: 5
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 300Mi
