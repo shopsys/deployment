@@ -9,7 +9,7 @@ spec:
     kind: Deployment
     name: webserver-php-fpm
   minReplicas: 2
-  maxReplicas: 3
+  maxReplicas: 2
   metrics:
     - type: ContainerResource
       containerResource:

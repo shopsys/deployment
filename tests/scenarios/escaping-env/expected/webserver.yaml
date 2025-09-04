@@ -387,6 +387,11 @@ spec:
   selector:
     matchLabels:
       app: storefront
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -474,7 +479,7 @@ spec:
       app: webserver-php-fpm
   strategy:
     rollingUpdate:
-      maxSurge: 1
+      maxSurge: 50%
       maxUnavailable: 0
     type: RollingUpdate
   template:

@@ -385,6 +385,11 @@ spec:
   selector:
     matchLabels:
       app: storefront
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -466,7 +471,7 @@ spec:
       app: webserver-php-fpm
   strategy:
     rollingUpdate:
-      maxSurge: 1
+      maxSurge: 50%
       maxUnavailable: 0
     type: RollingUpdate
   template:
@@ -665,7 +670,7 @@ metadata:
   name: storefront
   namespace: myproject-dev
 spec:
-  maxReplicas: 3
+  maxReplicas: 2
   metrics:
   - resource:
       name: cpu
@@ -685,7 +690,7 @@ metadata:
   name: webserver-php-fpm
   namespace: myproject-dev
 spec:
-  maxReplicas: 3
+  maxReplicas: 2
   metrics:
   - containerResource:
       container: php-fpm
