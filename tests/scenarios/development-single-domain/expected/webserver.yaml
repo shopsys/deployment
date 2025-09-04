@@ -602,33 +602,42 @@ spec:
           preStop:
             exec:
               command:
-              - sleep
-              - "10"
+              - /bin/sh
+              - -lc
+              - sleep 10
         livenessProbe:
+          failureThreshold: 3
           httpGet:
             path: /api/health
             port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
         name: storefront
         ports:
         - containerPort: 3000
           name: storefront
           protocol: TCP
         readinessProbe:
+          failureThreshold: 1
           httpGet:
             path: /api/health
             port: 3000
           initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 3
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 1.5Gi
           requests:
             cpu: 500m
             memory: 800Mi
+        startupProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /api/health
+            port: 3000
+          periodSeconds: 2
+          timeoutSeconds: 2
       imagePullSecrets:
       - name: dockerregistry
       terminationGracePeriodSeconds: 60

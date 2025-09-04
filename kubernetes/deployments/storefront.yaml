@@ -44,29 +44,35 @@ spec:
                     lifecycle:
                         preStop:
                             exec:
-                                command:
-                                    - sleep
-                                    - '10'
+                                command: ["/bin/sh","-lc","sleep 10"]
                     resources:
                         limits:
                             memory: "1.5Gi"
                         requests:
                             cpu: "500m"
                             memory: "800Mi"
+                    startupProbe:
+                        httpGet:
+                            path: /api/health
+                            port: 3000
+                        periodSeconds: 2
+                        timeoutSeconds: 2
+                        failureThreshold: 60
                     livenessProbe:
                         httpGet:
                             path: /api/health
                             port: 3000
-                        initialDelaySeconds: 30
-                        periodSeconds: 5
-                        timeoutSeconds: 5
+                        periodSeconds: 10
+                        timeoutSeconds: 2
+                        failureThreshold: 3
                     readinessProbe:
                         httpGet:
                             path: /api/health
                             port: 3000
                         initialDelaySeconds: 5
-                        periodSeconds: 5
-                        timeoutSeconds: 5
+                        periodSeconds: 3
+                        timeoutSeconds: 2
+                        failureThreshold: 1
             terminationGracePeriodSeconds: 60
             imagePullSecrets:
                 -   name: dockerregistry
