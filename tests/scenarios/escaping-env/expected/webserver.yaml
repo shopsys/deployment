@@ -736,12 +736,6 @@ spec:
         image: v1.0.0
         imagePullPolicy: IfNotPresent
         lifecycle:
-          postStart:
-            exec:
-              command:
-              - /var/www/html/phing
-              - -S
-              - warmup
           preStop:
             exec:
               command:
@@ -845,6 +839,55 @@ spec:
         name: copy-source-codes-to-volume
         volumeMounts:
         - mountPath: /tmp/source-codes
+          name: source-codes
+        - mountPath: /var/www/html/config/domains_urls.yaml
+          name: domains-urls
+          subPath: domains_urls.yaml
+      - command:
+        - /var/www/html/phing
+        - -S
+        - warmup
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: http://elasticsearch:9200
+        - name: TRUSTED_PROXY
+          value: 10.0.0.0/8
+        - name: DATABASE_NAME
+          value: myproject-production
+        - name: S3_ENDPOINT
+          value: https://s3.example.com
+        - name: MAILER_FORCE_WHITELIST
+          value: "false"
+        - name: DATABASE_USER
+          value: myproject-production
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: MESSENGER_TRANSPORT_DSN
+          value: amqp://guest:guest@rabbitmq:5672/%2f/messages
+        - name: REDIS_PREFIX
+          value: myproject-production
+        - name: DATABASE_PASSWORD
+          value: test-db-password
+        - name: DATABASE_HOST
+          value: 10.0.0.100
+        - name: ELASTIC_SEARCH_INDEX_PREFIX
+          value: myproject-production
+        - name: SENTRY_RELEASE
+          value: "479411e7"
+        - name: S3_SECRET
+          value: test-s3-secret
+        - name: MAILER_DSN
+          value: smtp://mailhog:1025
+        - name: S3_BUCKET_NAME
+          value: myproject-production
+        - name: S3_ACCESS_KEY
+          value: myproject-production
+        - name: APP_SECRET
+          value: test-app-secret-key
+        image: v1.0.0
+        name: warmup
+        volumeMounts:
+        - mountPath: /var/www/html
           name: source-codes
         - mountPath: /var/www/html/config/domains_urls.yaml
           name: domains-urls
