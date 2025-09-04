@@ -3,10 +3,13 @@ resources:
     - ../../services/webserver-php-fpm.yaml
     - ../../deployments/storefront.yaml
     - ../../services/storefront.yaml
+    - ../../deployments/cron.yaml
     - ../../namespace.yaml
     - ../../configmap/nginx.yaml
     - ../../configmap/production-php-fpm.yaml
     - ../../configmap/production-php-opcache.yaml
+    - ../../configmap/cron-env.yaml
+    - ../../configmap/cron-list.yaml
     - ../../ingress/ingress-rabbitmq.yaml
     - ../../horizontalPodAutoscaler.yaml
     - ../../horizontalStorefrontAutoscaler.yaml
