@@ -659,6 +659,47 @@ spec:
           defaultMode: 420
           secretName: fe-api-keys
 ---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: storefront
+  namespace: myproject-dev
+spec:
+  maxReplicas: 3
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 120
+        type: Utilization
+    type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: storefront
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: webserver-php-fpm
+  namespace: myproject-dev
+spec:
+  maxReplicas: 3
+  metrics:
+  - containerResource:
+      container: php-fpm
+      name: cpu
+      target:
+        averageUtilization: 120
+        type: Utilization
+    type: ContainerResource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: webserver-php-fpm
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

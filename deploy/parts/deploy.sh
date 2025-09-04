@@ -165,39 +165,11 @@ if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
     echo ""
 fi
 
-if [ ${ENABLE_AUTOSCALING} = true ]; then
-    echo -n "    Delete previous Horizontal pod autoscaler for Backend "
-    runCommand "SKIP" "kubectl delete hpa webserver-php-fpm --namespace=${PROJECT_NAME}"
-
-    echo -n "    Delete previous Horizontal pod autoscaler for Storefront "
-    runCommand "SKIP" "kubectl delete hpa storefront --namespace=${PROJECT_NAME}"
-fi
-
 echo -n "    Deploy Webserver and PHP-FPM container with Storefront"
 runCommand "ERROR" "kustomize build --load_restrictor none  \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\" | kubectl apply -f -"
 
 echo -n "    Waiting for start new PHP-FPM and Storefront container (In case of fail you need to manually check what is state of application)"
 runCommand "ERROR" "kubectl rollout status --namespace=${PROJECT_NAME} deployment/webserver-php-fpm deployment/storefront --watch"
-
-if [ ${ENABLE_AUTOSCALING} = true ]; then
-    echo -n "    Deploy Horizontal pod autoscaler for Backend "
-
-    if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-    fi
-
-    runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-
-    echo -n "    Deploy Horizontal pod autoscaler for Storefront "
-
-    if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-    fi
-
-    runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-fi
 
 RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}')
 

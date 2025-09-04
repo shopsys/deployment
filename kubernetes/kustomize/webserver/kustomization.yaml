@@ -8,6 +8,8 @@ resources:
     - ../../configmap/production-php-fpm.yaml
     - ../../configmap/production-php-opcache.yaml
     - ../../ingress/ingress-rabbitmq.yaml
+    - ../../horizontalPodAutoscaler.yaml
+    - ../../horizontalStorefrontAutoscaler.yaml
 namespace: "{{PROJECT_NAME}}"
 configMapGenerator:
     -   name: domains-urls
