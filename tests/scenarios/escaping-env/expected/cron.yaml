@@ -61,16 +61,12 @@ metadata:
   name: cron
   namespace: myproject-production
 spec:
-  progressDeadlineSeconds: 1500
   replicas: 1
   selector:
     matchLabels:
       app: cron
   strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-    type: RollingUpdate
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -94,12 +90,15 @@ spec:
             weight: 100
       containers:
       - args:
-        - cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe &&
-          mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && crontab -u root /var/spool/cron/template
-          && { crond || cron; } && stdbuf -o0 tail -n +1 -f /tmp/log-pipe
+        - |
+          ./phing warmup > /dev/null
+          # FIFO for logs rm -f /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe
+          # crontab crontab -u root /var/spool/cron/template
+          # run on backround stdbuf -o0 tail -n +1 -f /tmp/log-pipe &
+          exec crond -f || exec cron -f
         command:
         - /bin/sh
-        - -c
+        - -lc
         env:
         - name: ELASTICSEARCH_HOST
           value: http://elasticsearch:9200
@@ -143,8 +142,11 @@ spec:
           preStop:
             exec:
               command:
-              - sleep
-              - "5"
+              - /bin/sh
+              - -lc
+              - |
+                ( ./bin/console deploy:cron:lock > /tmp/cron-lock.log 2>&1 || true ) &
+                ./bin/console deploy:cron:watch || true
         name: cron
         securityContext:
           runAsUser: 0
@@ -164,6 +166,7 @@ spec:
         workingDir: /var/www/html
       imagePullSecrets:
       - name: dockerregistry
+      terminationGracePeriodSeconds: 3000
       tolerations:
       - effect: NoSchedule
         key: workload

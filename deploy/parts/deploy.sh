@@ -77,14 +77,10 @@ else
     fi
 fi
 
-DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}') || true
-
-if [[ -n ${DEPLOYED_CRON_POD} ]]; then
-    echo -n "Lock crons to prevent run next iteration "
-    runCommand "ERROR" "kubectl exec -t --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD} -- bash -c \"./phing -S cron-lock > /dev/null 2>&1 & disown\""
-
-    echo -n "Waiting until all cron instances are done "
-    runCommand "ERROR" "kubectl exec --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD} -- ./phing -S cron-watch"
+if kubectl get deployment/cron --namespace="${PROJECT_NAME}" >/dev/null 2>&1; then
+  echo -n "Waiting until all cron instances are done and stop cron"
+  runCommand "ERROR" "kubectl scale deployment/cron --namespace=${PROJECT_NAME} --replicas=0"
+  runCommand "ERROR" "kubectl rollout status deployment/cron --namespace=${PROJECT_NAME} --timeout=60m"
 fi
 
 echo "Migrate Application (database migrations, elasticsearch migrations, ...):"
@@ -130,7 +126,7 @@ if [ ${MIGRATION_COMPLETE_EXIT_CODE} -eq 1 ]; then
     echo -e "[${RED}ERROR${NO_COLOR}]"
 
     echo -n "Restore previous cron container "
-    runCommand "SKIP" "kubectl delete pod --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD}"
+    runCommand "SKIP" "kubectl scale deployment/cron --namespace=${PROJECT_NAME} --replicas=1"
 
     RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[0].metadata.name}')
 
