@@ -65,13 +65,17 @@ for DOMAIN in ${DOMAINS[@]}; do
     fi
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.name "eshop-domain-${DOMAIN_ITERATOR}"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].secretName "tls-eshop-domain-${DOMAIN_ITERATOR}"
+
+    # Generate TLS secret name from BASE_DOMAIN to ensure domains with same host share the same certificate
+    # Sanitize to meet Kubernetes naming requirements: lowercase alphanumeric and hyphens only, no leading/trailing hyphens
+    SECRET_NAME="tls-$(echo "${BASE_DOMAIN}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^-\+\|-\+$//g')"
+    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].secretName "${SECRET_NAME}"
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].host ${BASE_DOMAIN}
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${BASE_DOMAIN}
 
     if [ ! -z "${DOMAIN_PATH}" ]; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].http.paths[0].path "/${DOMAIN_PATH}/"
+        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].http.paths[0].path "/${DOMAIN_PATH}"
     fi
 
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[+].host ${REDIRECT_DOMAIN}
