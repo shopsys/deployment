@@ -75,10 +75,6 @@ find ${CONFIGURATION_TARGET_PATH} -type f | xargs sed -i  's/nullPlaceholder//' 
 for DOMAIN in ${DOMAINS[@]}; do
     BASENAME=${!DOMAIN}
 
-    if [[ "${BASENAME}" == *"/"* ]]; then
-        BASENAME=${BASENAME%%\/*} # Remove path from Domain if exists
-    fi
-
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"${DOMAIN}\""
     yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"https://${BASENAME}/\""
 
