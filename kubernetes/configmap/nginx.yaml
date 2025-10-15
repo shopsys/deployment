@@ -40,12 +40,32 @@ data:
             include /etc/nginx/conf.d/*.conf;
         }
     project-nginx.conf: |
+        gzip on;
+        gzip_comp_level 5;
+        gzip_min_length 256;
+        gzip_proxied any;
+        gzip_vary on;
+        gzip_types  text/plain
+                    text/css
+                    text/javascript
+                    application/javascript
+                    application/json
+                    application/xml
+                    application/rss+xml
+                    image/svg+xml;
+
         upstream php-upstream {
             server php-fpm:9000;
         }
 
         upstream storefront-upstream {
             server storefront:3000;
+        }
+
+        # storefront error page if accessed directly, plain text 404 if accessed via CDN
+        map "$http_cdn_vshosting_real_ip$http_cdn_vshosting_real_ip_img" $custom_error_target {
+            default @storefront;
+            "~.+"  @404;
         }
 
         server {
@@ -115,7 +135,12 @@ data:
                 set $request_host $http_originalhost;
             }
 
-            location ~ ^/resolve-friendly-url {
+            # define code to be used to redirect to the proper upstream
+            error_page 470 = @app;
+            error_page 469 = @storefront;
+            error_page 468 = @imageResizer;
+
+            location = /resolve-friendly-url {
                 allow 10.0.0.0/8;
                 allow 127.0.0.0/8;
                 allow 172.16.0.0/12;
@@ -127,103 +152,84 @@ data:
                 fastcgi_param SCRIPT_FILENAME $realpath_root/resolveFriendlyUrl.php;
             }
 
-            location ~ ^\/_next/ {
-                try_files @storefront @storefront;
+            # (?:/|$) in regexes is used to match /path, /path/, /path/subpath but not /pathology
+
+            # location always using the app backend, no static files
+            location ~ ^/(?:[^/]+/)?(graphql|_profiler|_wdt|_error)(?:/|$) {
+                return 470; # send to @app
             }
 
-            location ~ ^\/(?:[^/]+/)?(admin|public|content(-test)?|ckeditor|build|bundles|graphql|_profiler|_wdt|file|customer-file|redirect|elfinder|efconnect|personal-overview-export|codeception-acceptance-test|_error|social-network|convertim) {
-
+            # location for administration interface, uses admin error pages
+            location ~ ^/(?:[^/]+/)?({{ADMIN_URL}}|ckeditor|elfinder(\.main\.js)?|efconnect|build|bundles)(?:/|$) {
+                # hide dotfiles (send to @app)
                 location ~ /\. {
-                    # hide dotfiles (send to @app)
-                    try_files @app @app;
-                }
-                location ~ ^/index.php$ {
-                    # hide index.php (send to @app)
-                    try_files @app @app;
+                    return 470; # send to @app
                 }
 
-                # Handle content files with domain prefix - try without prefix first
-                location ~ ^\/[^\/]+\/(content(-test)?.*)$ {
-                    add_header "Access-Control-Allow-Origin" "*";
-                    try_files /$1 $uri @app;
+                try_files $uri @app;
+            }
+        
+            # location for static files, uses storefront error pages
+            location ~ ^/(public)/ {
+                # hide dotfiles (send to @app)
+                location ~ /\. {
+                    return 469; # send to @storefront
                 }
 
-                location ~ / {
-                    # try to serve existing files directly, fallback to @app
-                    try_files $uri @app;
+                try_files $uri $custom_error_target;
+            }
 
-                    # Enable compression of JavaScripts and CSS
-                    location ~ (\.js|\.css)$ {
-                        gzip on;
-                        gzip_types application/javascript text/css;
+            location ~ ^/content/images/(?<entity_name>\w+)(?<image_type>/\w+)?/(?<image_size>(default|original|galleryThumbnail|modal|list|thumbnail|thumbnailSmall|thumbnailExtraSmall|thumbnailMedium|header|footer|productList|productListSecondRow|cartPreview|productListMiddle|productListMiddleRetina|listAside|listGrid|searchThumbnail|listBig)/)(?<add_image_id>\d+--)?(?<image_name>([\w\-]+_)?(?<image_id>\d+))\.(?<image_extension>jpg|jpeg|png|gif) {
+                 expires 1w;
+                 return 301 $scheme://$http_host/content/images/$entity_name$image_type/$image_name.$image_extension$is_args$args;
+            }
 
-                        # Cache versioned static content for 1 year
-                        location ~ ((-v[0-9]+\.js)|(_[0-9]+\.css))$ {
-                            expires 1y;
+            # location for images, strip image name and serve image by its ID (send to imageResizer if there are width/height args)
+            location ~ ^/(?:[^/]+/)?(content(?:-test)?/images/.+)/(?<image_name>([\w\-]+_)?(?<image_id>\d+))\.(?<image_extension>jpe?g|png|gif) {
+                expires 1y;
 
-                            # (try_files directive is not inherited from the parent location so we have to repeat it)
-                            try_files $uri @app;
-                        }
+                error_page              403 404 = $custom_error_target;
+                # this needs to be repeated here because of nginx error_page inheritance rules
+                error_page              468 = @imageResizer;
 
-                        # (try_files directive is not inherited from the parent location so we have to repeat it)
-                        try_files $uri @app;
-                    }
-
-                    location ~ ^\/content\/images\/(?<entity_name>\w+)(?<image_type>\/\w+)?\/(?<image_size>(default|original|galleryThumbnail|modal|list|thumbnail|thumbnailSmall|thumbnailExtraSmall|thumbnailMedium|header|footer|productList|productListSecondRow|cartPreview|productListMiddle|productListMiddleRetina|listAside|listGrid|searchThumbnail|listBig)\/)(?<add_image_id>\d+--)?(?<image_name>([\w\-]+_)?(?<image_id>\d+))\.(?<image_extension>jpg|jpeg|png|gif) {
-                         expires 1w;
-                         return 301 $scheme://$http_host/content/images/$entity_name$image_type/$image_name.$image_extension$is_args$args;
-                    }
-
-                    location ~ ^\/content\/images\/(?<entity_name>\w+)(?<image_type>\/\w+)?\/(?<image_name>([\w\-]+_)?(?<image_id>\d+))\.(?<image_extension>jpg|jpeg|png|gif) {
-                        expires 1w;
-
-                        error_page 418 = @imageResizer;
-
-                        if ($is_args != '') {
-                            return 418;
-                        }
-
-                        proxy_intercept_errors  on;
-                        error_page              403 404 = @app;
-
-                        proxy_http_version      1.1;
-                        proxy_set_header        Authorization "";
-                        proxy_buffering         off;
-
-                        proxy_pass {{S3_ENDPOINT}}/{{PROJECT_NAME}}/web/content/images/$entity_name$image_type/$image_id.$image_extension;
-                    }
-
-                    location ~ ^/content/ {
-                        proxy_intercept_errors  on;
-                        error_page              404 = @app;
-
-                        proxy_http_version      1.1;
-                        proxy_set_header        Authorization "";
-                        proxy_buffering         off;
-
-                        proxy_pass              {{S3_ENDPOINT}}/{{PROJECT_NAME}}/web$request_uri;
-                    }
-
-                    location ~ ^/content(-test)?/images/ {
-                        # Newly uploaded images get new ID (different URL) so they could be cached forever.
-                        # But change of resolution in images.yaml does not induce a change of URL
-                        # so it is safer to cache generated images only for few days.
-                        expires 1w;
-
-                        error_page 418 = @imageResizer;
-
-                        if ($is_args != '') {
-                            return 418;
-                        }
-
-                        # (try_files directive is not inherited from the parent location so we have to repeat it)
-                        try_files $uri @app;
-                    }
+                if ($is_args != '') {
+                    return 468; # send to @imageResizer
                 }
+
+                proxy_intercept_errors  on;
+
+                proxy_http_version      1.1;
+                proxy_set_header        Authorization "";
+                proxy_buffering         off;
+
+                proxy_pass {{S3_ENDPOINT}}/{{PROJECT_NAME}}/web/$1/$image_id.$image_extension;
+            }
+
+            location ~ ^/(content)/ {
+                proxy_intercept_errors  on;
+                error_page              404 = $custom_error_target;
+
+                proxy_http_version      1.1;
+                proxy_set_header        Authorization "";
+                proxy_buffering         off;
+
+                proxy_pass              {{S3_ENDPOINT}}/{{PROJECT_NAME}}/web$request_uri;
+            }
+
+            # location for backend routes used by customers
+            # they have to force storefront 404 page if not found
+            # throw NotFoundRedirectToStorefrontException to trigger this behavior
+            location ~ ^/(?:[^/]+/)?(file|customer-file/(view|download)|personal-overview-export/xml|social-network/login|convertim)(?:/|$) {
+                location ~ /\. {
+                    # hide dotfiles (send to @storefront)
+                    return 469;
+                }
+        
+                try_files $uri @app;
             }
 
             location ^~ /_next/ {
-                try_files @storefront @storefront;
+                return 469; # send to @storefront
             }
 
             # disallow access to dynamic content from CDN
@@ -235,7 +241,7 @@ data:
                     return 403;
                 }
 
-                try_files @storefront @storefront;
+                return 469; # send to @storefront
             }
 
             location @storefront {
@@ -266,5 +272,14 @@ data:
                 fastcgi_pass php-upstream;
                 include fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $realpath_root/imageResizer.php;
+            }
+        
+            # plain 404 page for missing files accessed via CDN
+            # to avoid displaying storefront on the CDN domain
+            location @404 {
+                internal;
+                types {}
+                default_type text/html;
+                return 404 "File not found";
             }
         }
