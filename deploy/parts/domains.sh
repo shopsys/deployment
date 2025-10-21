@@ -90,11 +90,6 @@ for DOMAIN in ${DOMAINS[@]}; do
         if [ -n "${WHITELIST_IPS}" ]; then
             FINAL_WHITELIST_IPS="${WHITELIST_IPS}"
         fi
-    else
-        # If domain is running in production all rules should be configured in Cloudflare so we whitelist only CF IPs
-        if [ "${USING_CLOUDFLARE}" = "1" ] && ! containsElement ${DOMAIN} ${CLOUDFLARE_EXCLUDED_DOMAINS[@]}; then
-            FINAL_WHITELIST_IPS="${CLOUDFLARE_IPS}"
-        fi
     fi
 
     # Apply the final whitelist if we have any IPs
