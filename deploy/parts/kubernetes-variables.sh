@@ -13,6 +13,12 @@ fi
 
 VARS+=(REDIS_VERSION)
 
+if [ -z ${ADMIN_URL} ]; then
+  ADMIN_URL='admin'
+fi
+
+VARS+=(ADMIN_URL)
+
 if [[ $PROJECT_NAME != *"-"* ]]; then
     echo -e "[${RED}ERROR${NO_COLOR}] PROJECT_NAME must contain a dash to separate project and environment"
     exit 1
