@@ -17,6 +17,7 @@
 ## Upgrade from v4.1.0 to v4.1.1
 
 - fix 403 error for cloudflare ingress in production ([#60](https://github.com/shopsys/deployment/pull/60))
+- rabbitmq is now running on normal nodes ([#58](https://github.com/shopsys/deployment/pull/58))
 
 ## Upgrade from v4.0.11 to v4.1.0
 
