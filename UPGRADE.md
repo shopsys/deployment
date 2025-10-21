@@ -10,7 +10,7 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
-## Upgrade from v4.1.0 to v4.2.0
+## Upgrade from v4.1.1 to v4.2.0
 
 - improved nginx configuration ([#59](https://github.com/shopsys/deployment/pull/59))
 
