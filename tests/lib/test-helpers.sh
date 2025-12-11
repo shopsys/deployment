@@ -119,61 +119,6 @@ build_kustomize() {
     fi
 }
 
-# Validate YAML file is valid Kubernetes manifest using kubeconform
-validate_yaml() {
-    local yaml_file="$1"
-    local name="$2"
-    local error_output=""
-
-    if [ ! -f "$yaml_file" ]; then
-        print_warning "File not found for validation: $yaml_file"
-        return 2
-    fi
-
-    # Check if file contains error message instead of valid YAML
-    if head -1 "$yaml_file" | grep -q "^Error:"; then
-        print_error "Validation: $name (contains error)"
-        echo ""
-        cat "$yaml_file"
-        echo ""
-        ((TESTS_FAILED++))
-        return 1
-    fi
-
-    # Validate using kubeconform
-    # -strict: disallow additional properties not in schema
-    # -ignore-missing-schemas: skip validation for CRDs without schemas
-    # -summary: show summary at the end
-    if error_output=$(kubeconform -strict -ignore-missing-schemas "$yaml_file" 2>&1); then
-        print_success "Validation: $name"
-        ((TESTS_PASSED++))
-        return 0
-    else
-        print_error "Validation: $name"
-        echo ""
-        echo "$error_output"
-        echo ""
-        ((TESTS_FAILED++))
-        return 1
-    fi
-}
-
-# Validate all YAML files in a directory
-validate_directory() {
-    local dir="$1"
-    local prefix="${2:-}"
-
-    if [ ! -d "$dir" ]; then
-        print_warning "Directory not found for validation: $dir"
-        return 2
-    fi
-
-    while IFS= read -r -d '' yaml_file; do
-        local filename=$(basename "$yaml_file")
-        validate_yaml "$yaml_file" "${prefix}${filename}"
-    done < <(find "$dir" -type f \( -name "*.yaml" -o -name "*.yml" \) -print0)
-}
-
 # Reset test counters
 reset_counters() {
     TESTS_PASSED=0

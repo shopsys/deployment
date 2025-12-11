@@ -1,0 +1,422 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myproject-production
+---
+apiVersion: v1
+data:
+  domains_urls.yaml: |
+    domains_urls:
+    - id: 1
+      url: https://www.example.com
+    - id: 2
+      url: https://www.example.sk
+kind: ConfigMap
+metadata:
+  name: domains-urls-64tm462t8h
+  namespace: myproject-production
+---
+apiVersion: v1
+data:
+  redis.conf: |
+    tcp-keepalive 30
+    timeout 60
+    loglevel notice
+    maxmemory 2200mb
+    maxmemory-policy volatile-lru
+
+    # Disable AOF and RDB persistence as we keep everything in memory only, see https://redis.io/topics/persistence
+    appendonly no
+    # Disable RDB persistence, AOF persistence already disabled above.
+    save ""
+
+    # Enabling active memory defragmentation
+    activedefrag yes
+kind: ConfigMap
+metadata:
+  name: redis
+  namespace: myproject-production
+---
+apiVersion: v1
+data:
+  liveness.sh: |-
+    response=$( redis-cli ping )
+    if [ "$response" != "PONG" ] && [ "$response" != "LOADING Redis is loading the dataset in memory" ]; then
+        echo "$response"
+        exit 1
+    fi
+  readiness.sh: |-
+    response=$( redis-cli ping )
+    if [ "$response" != "PONG" ]; then
+        echo "$response"
+        exit 1
+    fi
+kind: ConfigMap
+metadata:
+  name: redis-health-configmap
+  namespace: myproject-production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rabbitmq
+    prometheus-exporter: "true"
+  name: rabbitmq
+  namespace: myproject-production
+spec:
+  clusterIP: None
+  ports:
+  - name: rabbitmq
+    port: 5672
+    targetPort: 5672
+  - name: rabbitmq-management
+    port: 15672
+    targetPort: 15672
+  - name: prometheus-exporter
+    port: 15692
+    targetPort: 15692
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: redis
+    prometheus-exporter: "true"
+  name: redis
+  namespace: myproject-production
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+  - name: prometheus-exporter
+    port: 9121
+    targetPort: 9121
+  selector:
+    app: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: consumer-email
+  name: consumer-email
+  namespace: myproject-production
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-email
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        logging/enabled: "true"
+        project/app: email
+        project/environment: production
+        project/name: myproject
+      labels:
+        app: consumer-email
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                - background
+            weight: 100
+      containers:
+      - args:
+        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer ]; do \n    php /var/www/html/bin/console messenger:consume email_transport --time-limit=300 --quiet\n    sleep 2\ndone\n"
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: http://elasticsearch:9200
+        - name: TRUSTED_PROXY
+          value: 10.0.0.0/8
+        - name: DATABASE_NAME
+          value: myproject-production
+        - name: S3_ENDPOINT
+          value: https://s3.example.com
+        - name: MAILER_FORCE_WHITELIST
+          value: "false"
+        - name: DATABASE_USER
+          value: myproject-production
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: MESSENGER_TRANSPORT_DSN
+          value: amqp://guest:guest@rabbitmq:5672/%2f/messages
+        - name: REDIS_PREFIX
+          value: myproject-production
+        - name: DATABASE_PASSWORD
+          value: test-db-password
+        - name: DATABASE_HOST
+          value: 10.0.0.100
+        - name: ELASTIC_SEARCH_INDEX_PREFIX
+          value: myproject-production
+        - name: SENTRY_RELEASE
+          value: 4794110000000
+        - name: S3_SECRET
+          value: test-s3-secret
+        - name: MAILER_DSN
+          value: smtp://mailhog:1025
+        - name: S3_BUCKET_NAME
+          value: myproject-production
+        - name: S3_ACCESS_KEY
+          value: myproject-production
+        - name: APP_SECRET
+          value: test-app-secret-key
+        image: v1.0.0
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - touch /tmp/stop_consumer && php bin/console messenger:stop-workers
+        name: consumer-email
+        volumeMounts:
+        - mountPath: /var/www/html/config/domains_urls.yaml
+          name: domains-urls
+          subPath: domains_urls.yaml
+        - mountPath: /var/www/html/config/frontend-api
+          name: fe-api-keys-volume
+          readOnly: true
+        workingDir: /var/www/html
+      imagePullSecrets:
+      - name: dockerregistry
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: workload
+        operator: Equal
+        value: background
+      volumes:
+      - configMap:
+          name: domains-urls-64tm462t8h
+        name: domains-urls
+      - name: fe-api-keys-volume
+        secret:
+          defaultMode: 420
+          secretName: fe-api-keys
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: myproject-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      annotations:
+        logging/enabled: "false"
+        project/app: redis
+        project/environment: production
+        project/name: myproject
+      labels:
+        app: redis
+    spec:
+      containers:
+      - image: oliver006/redis_exporter
+        imagePullPolicy: Always
+        name: redis-exporter
+        ports:
+        - containerPort: 9121
+          name: exporter
+          protocol: TCP
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
+      - args:
+        - /usr/local/etc/redis/redis.conf
+        image: redis:7.4-alpine
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/liveness.sh 5
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/readiness.sh 5
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            memory: 2500Mi
+          requests:
+            cpu: 100m
+            memory: 2500Mi
+        volumeMounts:
+        - mountPath: /health
+          name: health
+        - mountPath: /usr/local/etc/redis/redis.conf
+          name: config
+          subPath: redis.conf
+      volumes:
+      - configMap:
+          defaultMode: 493
+          name: redis-health-configmap
+        name: health
+      - configMap:
+          defaultMode: 493
+          name: redis
+        name: config
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: myproject-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  serviceName: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - rabbitmq
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: rabbitmq
+        - name: RABBITMQ_DEFAULT_PASS
+          value: rabbitmq-password
+        image: rabbitmq:4.1-management-alpine
+        name: rabbitmq
+        ports:
+        - containerPort: 15672
+          name: rabbitmq
+          protocol: TCP
+        - containerPort: 15692
+          name: exporter
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 20m
+        volumeMounts:
+        - mountPath: /var/lib/rabbitmq
+          name: rabbitmq-data
+      imagePullSecrets:
+      - name: dockerregistry
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: nfs-client
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-application
+  namespace: myproject-production
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - cd /var/www/html && sleep 30 && ./phing cluster-first-deploy db-fixtures-demo plugin-demo-data-load friendly-urls-generate domains-urls-replace elasticsearch-export
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: http://elasticsearch:9200
+        - name: TRUSTED_PROXY
+          value: 10.0.0.0/8
+        - name: DATABASE_NAME
+          value: myproject-production
+        - name: S3_ENDPOINT
+          value: https://s3.example.com
+        - name: MAILER_FORCE_WHITELIST
+          value: "false"
+        - name: DATABASE_USER
+          value: myproject-production
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: MESSENGER_TRANSPORT_DSN
+          value: amqp://guest:guest@rabbitmq:5672/%2f/messages
+        - name: REDIS_PREFIX
+          value: myproject-production
+        - name: DATABASE_PASSWORD
+          value: test-db-password
+        - name: DATABASE_HOST
+          value: 10.0.0.100
+        - name: ELASTIC_SEARCH_INDEX_PREFIX
+          value: myproject-production
+        - name: SENTRY_RELEASE
+          value: 4794110000000
+        - name: S3_SECRET
+          value: test-s3-secret
+        - name: MAILER_DSN
+          value: smtp://mailhog:1025
+        - name: S3_BUCKET_NAME
+          value: myproject-production
+        - name: S3_ACCESS_KEY
+          value: myproject-production
+        - name: APP_SECRET
+          value: test-app-secret-key
+        image: v1.0.0
+        name: migrate-application
+        volumeMounts:
+        - mountPath: /var/www/html/config/domains_urls.yaml
+          name: domains-urls
+          subPath: domains_urls.yaml
+      imagePullSecrets:
+      - name: dockerregistry
+      restartPolicy: Never
+      volumes:
+      - configMap:
+          name: domains-urls-64tm462t8h
+        name: domains-urls

@@ -242,10 +242,6 @@ run_scenario() {
     local output_dir
     output_dir=$(build_outputs "$test_tmp")
 
-    # Validate generated YAML files
-    #print_info "Validating Kubernetes manifests..."
-    #validate_directory "$output_dir" "${scenario_name}: "
-
     # Update mode: copy generated to expected
     if [ "${UPDATE_MODE}" = "1" ]; then
         print_info "Updating expected files..."
