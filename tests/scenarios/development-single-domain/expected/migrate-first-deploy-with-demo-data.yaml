@@ -7,11 +7,11 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://dev.example.com
+      - id: 1
+        url: https://dev.example.com
 kind: ConfigMap
 metadata:
-  name: domains-urls-2k8b4hbtb5
+  name: domains-urls-5f46tgkghd
   namespace: myproject-dev
 ---
 apiVersion: v1
@@ -251,7 +251,8 @@ spec:
       - command:
         - sh
         - -c
-        - cd /var/www/html && sleep 30 && ./phing cluster-first-deploy db-fixtures-demo plugin-demo-data-load friendly-urls-generate domains-urls-replace elasticsearch-export
+        - cd /var/www/html && sleep 30 && ./phing cluster-first-deploy db-fixtures-demo
+          plugin-demo-data-load friendly-urls-generate domains-urls-replace elasticsearch-export
         env:
         - name: ELASTICSEARCH_HOST
           value: http://elasticsearch:9200
@@ -298,5 +299,5 @@ spec:
       restartPolicy: Never
       volumes:
       - configMap:
-          name: domains-urls-2k8b4hbtb5
+          name: domains-urls-5f46tgkghd
         name: domains-urls

@@ -7,13 +7,13 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://www.shop.com
-    - id: 2
-      url: https://www.shop.de
+      - id: 1
+        url: https://www.shop.com
+      - id: 2
+        url: https://www.shop.de
 kind: ConfigMap
 metadata:
-  name: domains-urls-997f7g7mb7
+  name: domains-urls-47t6ghttc4
   namespace: shop-production
 ---
 apiVersion: v1
@@ -649,7 +649,7 @@ spec:
       - emptyDir: {}
         name: source-codes
       - configMap:
-          name: domains-urls-997f7g7mb7
+          name: domains-urls-47t6ghttc4
         name: domains-urls
       - configMap:
           name: nginx-default-config
@@ -671,7 +671,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }
+    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
+      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
+      308 https://www.$domain$request_uri; }
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
     nginx.ingress.kubernetes.io/server-snippet: real_ip_header CF-Connecting-IP;
   name: eshop-domain-0
@@ -702,7 +704,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }
+    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
+      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
+      308 https://www.$domain$request_uri; }
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
     nginx.ingress.kubernetes.io/server-snippet: real_ip_header CF-Connecting-IP;
   name: eshop-domain-1

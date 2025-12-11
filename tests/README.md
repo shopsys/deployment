@@ -17,22 +17,22 @@ Tests should be run inside the buildpack container which contains yq v3 and kust
 ```bash
 # List available test scenarios
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  registry.shopsys.cz/devops/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh --list
 
 # Run all tests
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  registry.shopsys.cz/devops/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh
 
 # Run a specific scenario
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  registry.shopsys.cz/devops/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh basic-production
 
 # Generate/update expected files
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  registry.shopsys.cz/devops/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh --update
 ```
 

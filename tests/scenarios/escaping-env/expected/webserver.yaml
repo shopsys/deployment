@@ -7,13 +7,13 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://www.example.com
-    - id: 2
-      url: https://www.example.sk
+      - id: 1
+        url: https://www.example.com
+      - id: 2
+        url: https://www.example.sk
 kind: ConfigMap
 metadata:
-  name: domains-urls-64tm462t8h
+  name: domains-urls-m8t7497btf
   namespace: myproject-production
 ---
 apiVersion: v1
@@ -412,7 +412,7 @@ spec:
       containers:
       - env:
         - name: SENTRY_RELEASE
-          value: 4794110000000
+          value: "479411e7"
         - name: DOMAIN_HOSTNAME_1
           value: https://www.example.com/
         - name: PUBLIC_GRAPHQL_ENDPOINT_HOSTNAME_1
@@ -537,7 +537,7 @@ spec:
         - name: ELASTIC_SEARCH_INDEX_PREFIX
           value: myproject-production
         - name: SENTRY_RELEASE
-          value: 4794110000000
+          value: "479411e7"
         - name: S3_SECRET
           value: test-s3-secret
         - name: MAILER_DSN
@@ -653,7 +653,7 @@ spec:
       - emptyDir: {}
         name: source-codes
       - configMap:
-          name: domains-urls-64tm462t8h
+          name: domains-urls-m8t7497btf
         name: domains-urls
       - configMap:
           name: nginx-default-config
@@ -675,7 +675,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }
+    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
+      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
+      308 https://www.$domain$request_uri; }
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
   name: eshop-domain-0
   namespace: myproject-production
@@ -705,7 +707,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }
+    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
+      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
+      308 https://www.$domain$request_uri; }
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
   name: eshop-domain-1
   namespace: myproject-production

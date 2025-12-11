@@ -44,13 +44,13 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://www.shop.com
-    - id: 2
-      url: https://www.shop.de
+      - id: 1
+        url: https://www.shop.com
+      - id: 2
+        url: https://www.shop.de
 kind: ConfigMap
 metadata:
-  name: domains-urls-997f7g7mb7
+  name: domains-urls-47t6ghttc4
   namespace: shop-production
 ---
 apiVersion: apps/v1
@@ -94,7 +94,9 @@ spec:
             weight: 100
       containers:
       - args:
-        - cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && crontab -u root /var/spool/cron/template && { crond || cron; } && stdbuf -o0 tail -n +1 -f /tmp/log-pipe
+        - cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe &&
+          mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && crontab -u root /var/spool/cron/template
+          && { crond || cron; } && stdbuf -o0 tail -n +1 -f /tmp/log-pipe
         command:
         - /bin/sh
         - -c
@@ -167,7 +169,7 @@ spec:
         value: background
       volumes:
       - configMap:
-          name: domains-urls-997f7g7mb7
+          name: domains-urls-47t6ghttc4
         name: domains-urls
       - configMap:
           name: cron-list
