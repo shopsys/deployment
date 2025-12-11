@@ -7,13 +7,13 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://www.example.com
-    - id: 2
-      url: https://www.example.sk
+      - id: 1
+        url: https://www.example.com
+      - id: 2
+        url: https://www.example.sk
 kind: ConfigMap
 metadata:
-  name: domains-urls-64tm462t8h
+  name: domains-urls-m8t7497btf
   namespace: myproject-production
 ---
 apiVersion: v1
@@ -138,7 +138,10 @@ spec:
             weight: 100
       containers:
       - args:
-        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer ]; do \n    php /var/www/html/bin/console messenger:consume email_transport --time-limit=300 --quiet\n    sleep 2\ndone\n"
+        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf
+          -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer
+          ]; do \n    php /var/www/html/bin/console messenger:consume email_transport
+          --time-limit=300 --quiet\n    sleep 2\ndone\n"
         command:
         - /bin/sh
         - -c
@@ -168,7 +171,7 @@ spec:
         - name: ELASTIC_SEARCH_INDEX_PREFIX
           value: myproject-production
         - name: SENTRY_RELEASE
-          value: 4794110000000
+          value: "479411e7"
         - name: S3_SECRET
           value: test-s3-secret
         - name: MAILER_DSN
@@ -207,7 +210,7 @@ spec:
         value: background
       volumes:
       - configMap:
-          name: domains-urls-64tm462t8h
+          name: domains-urls-m8t7497btf
         name: domains-urls
       - name: fe-api-keys-volume
         secret:
@@ -369,7 +372,8 @@ spec:
       - command:
         - sh
         - -c
-        - cd /var/www/html && ./phing -verbose db-migrations-count-with-maintenance build-deploy-part-2-db-dependent
+        - cd /var/www/html && ./phing -verbose db-migrations-count-with-maintenance
+          build-deploy-part-2-db-dependent
         env:
         - name: ELASTICSEARCH_HOST
           value: http://elasticsearch:9200
@@ -396,7 +400,7 @@ spec:
         - name: ELASTIC_SEARCH_INDEX_PREFIX
           value: myproject-production
         - name: SENTRY_RELEASE
-          value: 4794110000000
+          value: "479411e7"
         - name: S3_SECRET
           value: test-s3-secret
         - name: MAILER_DSN
@@ -418,5 +422,5 @@ spec:
       restartPolicy: Never
       volumes:
       - configMap:
-          name: domains-urls-64tm462t8h
+          name: domains-urls-m8t7497btf
         name: domains-urls

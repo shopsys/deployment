@@ -50,42 +50,43 @@ for DOMAIN in ${DOMAINS[@]}; do
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN=${BASENAME#"www."}
 
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }'
+        yq e -i '.metadata.annotations."nginx.ingress.kubernetes.io/configuration-snippet"="if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return 308 https://www.$domain$request_uri; }"' "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
     else
         BASE_DOMAIN=${BASENAME}
         REDIRECT_DOMAIN="www.${BASENAME}"
 
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/configuration-snippet\"" 'if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^www\.(?<domain>.+)$) { return 308 https://$domain$request_uri; }'
+        yq e -i '.metadata.annotations."nginx.ingress.kubernetes.io/configuration-snippet"="if ($scheme = http) { return 308 https://$host$request_uri; } if ($host ~ ^www\.(?<domain>.+)$) { return 308 https://$domain$request_uri; }"' "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
     fi
 
     if [ ! -z "${DOMAIN_PATH}" ]; then
-        yq write --inplace ${DOMAINS_URLS_FILEPATH} domains_urls[${DOMAIN_ITERATOR}].url https://${BASE_DOMAIN}/${DOMAIN_PATH}
+        yq e -i ".domains_urls[${DOMAIN_ITERATOR}].url=\"https://${BASE_DOMAIN}/${DOMAIN_PATH}\"" "${DOMAINS_URLS_FILEPATH}"
     else
-        yq write --inplace ${DOMAINS_URLS_FILEPATH} domains_urls[${DOMAIN_ITERATOR}].url https://${BASE_DOMAIN}
+        yq e -i ".domains_urls[${DOMAIN_ITERATOR}].url=\"https://${BASE_DOMAIN}\"" "${DOMAINS_URLS_FILEPATH}"
     fi
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.name "eshop-domain-${DOMAIN_ITERATOR}"
+    yq e -i ".metadata.name=\"eshop-domain-${DOMAIN_ITERATOR}\"" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
 
     # Generate TLS secret name from BASE_DOMAIN to ensure domains with same host share the same certificate
     # Sanitize to meet Kubernetes naming requirements: lowercase alphanumeric and hyphens only, no leading/trailing hyphens
     SECRET_NAME="tls-$(echo "${BASE_DOMAIN}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^-\+\|-\+$//g')"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].secretName "${SECRET_NAME}"
+    yq e -i ".spec.tls[0].secretName=\"${SECRET_NAME}\"" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].host ${BASE_DOMAIN}
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${BASE_DOMAIN}
+    yq e -i ".spec.rules[0].host=\"${BASE_DOMAIN}\"" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
+    yq e -i ".spec.rules += [{\"host\": \"${REDIRECT_DOMAIN}\"}]" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
+
+    yq e -i ".spec.tls[0].hosts += [\"${BASE_DOMAIN}\", \"${REDIRECT_DOMAIN}\"]" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
 
     if [ ! -z "${DOMAIN_PATH}" ]; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[0].http.paths[0].path "/${DOMAIN_PATH}"
+        yq e -i ".spec.rules[0].http.paths[0].path = \"/${DOMAIN_PATH}\"" "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
     fi
-
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.rules[+].host ${REDIRECT_DOMAIN}
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" spec.tls[0].hosts[+] ${REDIRECT_DOMAIN}
 
     # When domain is not in production we need to whitelist our IPs. But this also enables access outside Cloudflare
     if [ ${RUNNING_PRODUCTION} -ne "1" ] || containsElement ${DOMAIN} ${FORCE_HTTP_AUTH_IN_PRODUCTION[@]}; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-type\"" basic
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-secret\"" http-auth
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-realm\"" "Authentication Required - ok"
+        yq e -i '
+          .metadata.annotations."nginx.ingress.kubernetes.io/auth-type" = "basic" |
+          .metadata.annotations."nginx.ingress.kubernetes.io/auth-secret" = "http-auth" |
+          .metadata.annotations."nginx.ingress.kubernetes.io/auth-realm" = "Authentication Required - ok"
+        ' "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
 
         # Clean up whitespace and trailing commas from both variables
         DEFAULT_WHITELIST_IPS_CLEAN=$(echo "${DEFAULT_WHITELIST_IPS}" | tr -d ' ' | sed 's/,$//')
@@ -103,15 +104,17 @@ for DOMAIN in ${DOMAINS[@]}; do
 
     # Apply the final whitelist if we have any IPs
     if [ -n "${FINAL_WHITELIST_IPS}" ]; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/whitelist-source-range\"" "${FINAL_WHITELIST_IPS}"
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/satisfy\"" "any"
+        yq e -i '
+          .metadata.annotations."nginx.ingress.kubernetes.io/whitelist-source-range" = "'"${FINAL_WHITELIST_IPS}"'" |
+          .metadata.annotations."nginx.ingress.kubernetes.io/satisfy" = "any"
+        ' "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
     fi
 
     if [ "${USING_CLOUDFLARE}" = "1" ] && ! containsElement ${DOMAIN} ${CLOUDFLARE_EXCLUDED_DOMAINS[@]}; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/server-snippet\"" "real_ip_header CF-Connecting-IP;"
+        yq e -i '.metadata.annotations."nginx.ingress.kubernetes.io/server-snippet" = "real_ip_header CF-Connecting-IP;"' "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}"
     fi
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/webserver/kustomization.yaml" resources[+] "../../ingress/${INGRESS_FILENAME}"
+    yq e -i ".resources += [\"../../ingress/${INGRESS_FILENAME}\"]" "${CONFIGURATION_TARGET_PATH}/kustomize/webserver/kustomization.yaml"
 
     DOMAIN_ITERATOR=$(expr $DOMAIN_ITERATOR + 1)
 done

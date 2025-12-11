@@ -10,6 +10,11 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.3.0 to v4.4.0
+
+- yq was updated to the newest version ([#63](https://github.com/shopsys/deployment/pull/63))
+  - If you are using `shopsys/kubernetes-buildpack:1.x` in your GitLab CI pipeline, update it to `shopsys/kubernetes-buildpack:2.0`
+
 ## Upgrade from v4.1.1 to v4.2.0
 
 - improved nginx configuration ([#59](https://github.com/shopsys/deployment/pull/59))

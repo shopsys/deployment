@@ -25,7 +25,7 @@
         ```yaml
         .deploy: &deploy
             image:
-                name: shopsys/kubernetes-buildpack:0.9
+                name: shopsys/kubernetes-buildpack:2.0
             stage: deploy
             tags:
                 - docker
