@@ -87,8 +87,17 @@ for DOMAIN in ${DOMAINS[@]}; do
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-secret\"" http-auth
         yq write --inplace "${CONFIGURATION_TARGET_PATH}/ingress/${INGRESS_FILENAME}" metadata.annotations."\"nginx.ingress.kubernetes.io/auth-realm\"" "Authentication Required - ok"
 
-        if [ -n "${WHITELIST_IPS}" ]; then
-            FINAL_WHITELIST_IPS="${WHITELIST_IPS}"
+        # Clean up whitespace and trailing commas from both variables
+        DEFAULT_WHITELIST_IPS_CLEAN=$(echo "${DEFAULT_WHITELIST_IPS}" | tr -d ' ' | sed 's/,$//')
+        WHITELIST_IPS_CLEAN=$(echo "${WHITELIST_IPS}" | tr -d ' ' | sed 's/,$//')
+
+        # Merge default and environment whitelist IPs
+        if [ -n "${DEFAULT_WHITELIST_IPS_CLEAN}" ] && [ -n "${WHITELIST_IPS_CLEAN}" ]; then
+            FINAL_WHITELIST_IPS="${DEFAULT_WHITELIST_IPS_CLEAN},${WHITELIST_IPS_CLEAN}"
+        elif [ -n "${DEFAULT_WHITELIST_IPS_CLEAN}" ]; then
+            FINAL_WHITELIST_IPS="${DEFAULT_WHITELIST_IPS_CLEAN}"
+        elif [ -n "${WHITELIST_IPS_CLEAN}" ]; then
+            FINAL_WHITELIST_IPS="${WHITELIST_IPS_CLEAN}"
         fi
     fi
 
