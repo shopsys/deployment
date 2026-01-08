@@ -253,13 +253,26 @@ Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
 
 ### Whitelist IP addresses
 
-You need only to add IP address to `deploy/deploy-project.sh` to `WHITELIST_IPS` variable
+There are two ways to set whitelisted IP addresses.
 
-*TIP:* It would be nice to have all IP addresses described like:
+#### `WHITELIST_IPS` env variable on CI
+
+You can set sensitive whitelisted IPs in your env variable like this:
+
 ```shell
-#              Some IP   Another IP    Some service
 WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
 ```
+
+#### `DEFAULT_WHITELIST_IPS` env variable in `deploy/deploy-project.sh`
+
+For non-sensitive IPs, that you want to share between all environments you can use `DEFAULT_WHITELIST_IPS` in `deploy/deploy-project.sh` like this:
+
+```shell
+#                      Some IP   Another IP    Some service
+DEFAULT_WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
+```
+
+Values from both variables (`WHITELIST_IPS` and `DEFAULT_WHITELIST_IPS`) will be merged and used in the final configuration.
 
 ### Configure Cloudflare
 
