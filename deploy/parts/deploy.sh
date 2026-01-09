@@ -51,14 +51,14 @@ fi
 if [ "${RUNNING_PRODUCTION}" -eq "0" ] || [ "${DOWNSCALE_RESOURCE:-0}" -eq "1" ]; then
     echo -n "    Replace pods CPU requests to minimum (for Devel cluster only) "
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[1].resources.requests.cpu" "0.01"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml" "spec.template.spec.containers[1].resources.requests.cpu" "0.01"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/rabbitmq.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "0.01"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+    yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+    yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/rabbitmq.yaml"
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.memory" "100Mi"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml" "spec.template.spec.containers[1].resources.requests.memory" "100Mi"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+    yq e -i '.spec.template.spec.containers[1].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
 
     echo -e "[${GREEN}OK${NO_COLOR}]"
 else
@@ -66,11 +66,11 @@ else
         echo -n "    Replace pods CPU requests "
 
         if [ -v PHP_FPM_CPU_REQUEST ]; then
-            yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "${PHP_FPM_CPU_REQUEST}"
+            yq e -i ".spec.template.spec.containers[0].resources.requests.cpu = \"${PHP_FPM_CPU_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
         fi
 
         if [ -v STOREFRONT_CPU_REQUEST ]; then
-            yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].resources.requests.cpu" "${STOREFRONT_CPU_REQUEST}"
+            yq e -i ".spec.template.spec.containers[0].resources.requests.cpu = \"${STOREFRONT_CPU_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
         fi
 
         echo -e "[${GREEN}OK${NO_COLOR}]"
@@ -187,8 +187,8 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     echo -n "    Deploy Horizontal pod autoscaler for Backend "
 
     if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml" spec.minReplicas 2
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml" spec.maxReplicas 2
+        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
+        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
     fi
 
     runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
@@ -196,8 +196,8 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     echo -n "    Deploy Horizontal pod autoscaler for Storefront "
 
     if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml" spec.minReplicas 2
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml" spec.maxReplicas 2
+        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
+        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
     fi
 
     runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
