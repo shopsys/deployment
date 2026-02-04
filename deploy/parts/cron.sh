@@ -17,6 +17,8 @@ done
 echo "        " >> "${CONFIGURATION_TARGET_PATH}/configmap/cron-list.yaml"
 unset CRON_INSTANCES
 
-yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/cron.yaml" "spec.template.metadata.labels.date" "\"$(date +%s)\""
+# Use FREEZE_TIMESTAMP for testing, otherwise use current timestamp
+CRON_TIMESTAMP="${FREEZE_TIMESTAMP:-$(date +%s)}"
+yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/cron.yaml" "spec.template.metadata.labels.date" "\"${CRON_TIMESTAMP}\""
 
 echo -e "[${GREEN}OK${NO_COLOR}]"
