@@ -10,8 +10,6 @@ resources:
     - ../../configmap/cron-env.yaml
     - ../../configmap/cron-list.yaml
     - ../../ingress/ingress-rabbitmq.yaml
-    - ../../horizontalPodAutoscaler.yaml
-    - ../../horizontalStorefrontAutoscaler.yaml
 namespace: "{{PROJECT_NAME}}"
 configMapGenerator:
     -   name: domains-urls

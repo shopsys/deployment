@@ -40,5 +40,12 @@ if [[ "${ENABLE_AUTOSCALING:-false}" == "true" ]]; then
     patch_rollout "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "${MIN_PHP_FPM_REPLICAS}"
     patch_rollout "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "${MIN_STOREFRONT_REPLICAS}"
 
+    yq e -i '
+        .resources += [
+          "../../horizontalPodAutoscaler.yaml",
+          "../../horizontalStorefrontAutoscaler.yaml"
+        ]
+    ' "${CONFIGURATION_TARGET_PATH}/kustomize/webserver/kustomization.yaml"
+
     echo -e "[${GREEN}OK${NO_COLOR}]"
 fi
