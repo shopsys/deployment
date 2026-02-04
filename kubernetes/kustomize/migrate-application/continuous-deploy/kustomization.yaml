@@ -1,7 +1,6 @@
 resources:
     - ../../../deployments/redis.yaml
     - ../../../services/redis.yaml
-    - ../../../namespace.yaml
     - ../../../configmap/redis.yaml
     - ../../../configmap/redis-health.yaml
     - ../../../deployments/rabbitmq.yaml

@@ -3,10 +3,12 @@ resources:
     - ../../services/webserver-php-fpm.yaml
     - ../../deployments/storefront.yaml
     - ../../services/storefront.yaml
-    - ../../namespace.yaml
+    - ../../deployments/cron.yaml
     - ../../configmap/nginx.yaml
     - ../../configmap/production-php-fpm.yaml
     - ../../configmap/production-php-opcache.yaml
+    - ../../configmap/cron-env.yaml
+    - ../../configmap/cron-list.yaml
     - ../../ingress/ingress-rabbitmq.yaml
 namespace: "{{PROJECT_NAME}}"
 configMapGenerator:

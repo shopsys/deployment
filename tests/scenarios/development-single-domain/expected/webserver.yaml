@@ -1,7 +1,38 @@
 apiVersion: v1
-kind: Namespace
+data:
+  .project_env.sh: |
+    export ELASTICSEARCH_HOST='http://elasticsearch:9200'
+    export TRUSTED_PROXY='10.0.0.0/8'
+    export DATABASE_NAME='myproject-dev'
+    export S3_ENDPOINT='https://s3.example.com'
+    export MAILER_FORCE_WHITELIST='true'
+    export DATABASE_USER='myproject-dev'
+    export DATABASE_PORT='5432'
+    export MESSENGER_TRANSPORT_DSN='amqp://guest:guest@rabbitmq:5672/%2f/messages'
+    export REDIS_PREFIX='myproject-dev'
+    export DATABASE_PASSWORD='test-db-password'
+    export DATABASE_HOST='10.0.0.100'
+    export ELASTIC_SEARCH_INDEX_PREFIX='myproject-dev'
+    export S3_SECRET='test-s3-secret'
+    export MAILER_DSN='smtp://mailhog:1025'
+    export S3_BUCKET_NAME='myproject-dev'
+    export S3_ACCESS_KEY='myproject-dev'
+    export APP_SECRET='test-app-secret-key'
+kind: ConfigMap
 metadata:
-  name: myproject-dev
+  name: cron-env
+  namespace: myproject-dev
+---
+apiVersion: v1
+data:
+  cron: |+
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    */5 * * * * . /root/.project_env.sh && cd /var/www/html/ && ./phing cron > /dev/null 2>&1
+
+kind: ConfigMap
+metadata:
+  name: cron-list
+  namespace: myproject-dev
 ---
 apiVersion: v1
 data:
@@ -86,8 +117,15 @@ data:
         root /var/www/html/web;
 
         location /health {
-            stub_status  on;
             access_log   off;
+
+            include fastcgi_params;
+            fastcgi_read_timeout 3s;
+            fastcgi_param SCRIPT_FILENAME /ping;
+            fastcgi_param SCRIPT_NAME     /ping;
+            fastcgi_param REQUEST_METHOD  GET;
+
+            fastcgi_pass php-upstream;
         }
     }
 
@@ -315,6 +353,8 @@ data:
     [www]
 
     listen = 127.0.0.1:9000
+    ping.path = /ping
+    ping.response = pong
 
     pm = dynamic
     pm.max_children = 20
@@ -378,6 +418,138 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  labels:
+    app: cron
+  name: cron
+  namespace: myproject-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cron
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        logging/enabled: "true"
+        project/app: cron
+        project/environment: dev
+        project/name: myproject
+      labels:
+        app: cron
+        date: "1234567890"
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                - background
+            weight: 100
+      containers:
+      - args:
+        - |
+          ./phing warmup > /dev/null
+          # FIFO for logs rm -f /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe
+          # crontab crontab -u root /var/spool/cron/template
+          # run on backround stdbuf -o0 tail -n +1 -f /tmp/log-pipe &
+          exec crond -f || exec cron -f
+        command:
+        - /bin/sh
+        - -lc
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: http://elasticsearch:9200
+        - name: TRUSTED_PROXY
+          value: 10.0.0.0/8
+        - name: DATABASE_NAME
+          value: myproject-dev
+        - name: S3_ENDPOINT
+          value: https://s3.example.com
+        - name: MAILER_FORCE_WHITELIST
+          value: "true"
+        - name: DATABASE_USER
+          value: myproject-dev
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: MESSENGER_TRANSPORT_DSN
+          value: amqp://guest:guest@rabbitmq:5672/%2f/messages
+        - name: REDIS_PREFIX
+          value: myproject-dev
+        - name: DATABASE_PASSWORD
+          value: test-db-password
+        - name: DATABASE_HOST
+          value: 10.0.0.100
+        - name: ELASTIC_SEARCH_INDEX_PREFIX
+          value: myproject-dev
+        - name: S3_SECRET
+          value: test-s3-secret
+        - name: MAILER_DSN
+          value: smtp://mailhog:1025
+        - name: S3_BUCKET_NAME
+          value: myproject-dev
+        - name: S3_ACCESS_KEY
+          value: myproject-dev
+        - name: APP_SECRET
+          value: test-app-secret-key
+        image: dev-latest
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -lc
+              - |
+                ( ./bin/console deploy:cron:lock > /tmp/cron-lock.log 2>&1 || true ) &
+                ./bin/console deploy:cron:watch || true
+        name: cron
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/www/html/config/domains_urls.yaml
+          name: domains-urls
+          subPath: domains_urls.yaml
+        - mountPath: /var/spool/cron/template
+          name: cron-list
+          subPath: cron
+        - mountPath: /root/.project_env.sh
+          name: cron-env
+          subPath: .project_env.sh
+        - mountPath: /var/www/html/config/frontend-api
+          name: fe-api-keys-volume
+          readOnly: true
+        workingDir: /var/www/html
+      imagePullSecrets:
+      - name: dockerregistry
+      terminationGracePeriodSeconds: 3000
+      tolerations:
+      - effect: NoSchedule
+        key: workload
+        operator: Equal
+        value: background
+      volumes:
+      - configMap:
+          name: domains-urls-5f46tgkghd
+        name: domains-urls
+      - configMap:
+          name: cron-list
+        name: cron-list
+      - configMap:
+          name: cron-env
+        name: cron-env
+      - name: fe-api-keys-volume
+        secret:
+          defaultMode: 420
+          secretName: fe-api-keys
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: storefront
   namespace: myproject-dev
 spec:
@@ -385,6 +557,11 @@ spec:
   selector:
     matchLabels:
       app: storefront
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -420,33 +597,42 @@ spec:
           preStop:
             exec:
               command:
-              - sleep
-              - "10"
+              - /bin/sh
+              - -lc
+              - sleep 10
         livenessProbe:
+          failureThreshold: 3
           httpGet:
             path: /api/health
             port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
         name: storefront
         ports:
         - containerPort: 3000
           name: storefront
           protocol: TCP
         readinessProbe:
+          failureThreshold: 1
           httpGet:
             path: /api/health
             port: 3000
           initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 3
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 1.5Gi
           requests:
             cpu: 500m
             memory: 800Mi
+        startupProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /api/health
+            port: 3000
+          periodSeconds: 2
+          timeoutSeconds: 2
       imagePullSecrets:
       - name: dockerregistry
       terminationGracePeriodSeconds: 60
@@ -466,7 +652,7 @@ spec:
       app: webserver-php-fpm
   strategy:
     rollingUpdate:
-      maxSurge: 1
+      maxSurge: 50%
       maxUnavailable: 0
     type: RollingUpdate
   template:
@@ -541,19 +727,25 @@ spec:
         image: dev-latest
         imagePullPolicy: IfNotPresent
         lifecycle:
-          postStart:
-            exec:
-              command:
-              - /var/www/html/phing
-              - -S
-              - warmup
           preStop:
             exec:
               command:
-              - sh
-              - -c
-              - sleep 10 && kill -SIGQUIT 1
+              - /bin/sh
+              - -lc
+              - sleep 10; kill -QUIT 1 || true
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          tcpSocket:
+            port: 9000
+          timeoutSeconds: 2
         name: php-fpm
+        readinessProbe:
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          tcpSocket:
+            port: 9000
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 2Gi
@@ -585,23 +777,27 @@ spec:
               - -c
               - sleep 5 && /usr/sbin/nginx -s quit
         livenessProbe:
+          failureThreshold: 6
           httpGet:
             path: /health
-            port: 80
+            port: health
           initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
         name: webserver
         ports:
         - containerPort: 8080
           name: http
+        - containerPort: 80
+          name: health
         readinessProbe:
+          failureThreshold: 3
           httpGet:
             path: /health
-            port: 80
-          initialDelaySeconds: 5
+            port: health
+          initialDelaySeconds: 2
           periodSeconds: 5
-          timeoutSeconds: 5
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 300Mi
@@ -634,6 +830,53 @@ spec:
         name: copy-source-codes-to-volume
         volumeMounts:
         - mountPath: /tmp/source-codes
+          name: source-codes
+        - mountPath: /var/www/html/config/domains_urls.yaml
+          name: domains-urls
+          subPath: domains_urls.yaml
+      - command:
+        - /var/www/html/phing
+        - -S
+        - warmup
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: http://elasticsearch:9200
+        - name: TRUSTED_PROXY
+          value: 10.0.0.0/8
+        - name: DATABASE_NAME
+          value: myproject-dev
+        - name: S3_ENDPOINT
+          value: https://s3.example.com
+        - name: MAILER_FORCE_WHITELIST
+          value: "true"
+        - name: DATABASE_USER
+          value: myproject-dev
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: MESSENGER_TRANSPORT_DSN
+          value: amqp://guest:guest@rabbitmq:5672/%2f/messages
+        - name: REDIS_PREFIX
+          value: myproject-dev
+        - name: DATABASE_PASSWORD
+          value: test-db-password
+        - name: DATABASE_HOST
+          value: 10.0.0.100
+        - name: ELASTIC_SEARCH_INDEX_PREFIX
+          value: myproject-dev
+        - name: S3_SECRET
+          value: test-s3-secret
+        - name: MAILER_DSN
+          value: smtp://mailhog:1025
+        - name: S3_BUCKET_NAME
+          value: myproject-dev
+        - name: S3_ACCESS_KEY
+          value: myproject-dev
+        - name: APP_SECRET
+          value: test-app-secret-key
+        image: dev-latest
+        name: warmup
+        volumeMounts:
+        - mountPath: /var/www/html
           name: source-codes
         - mountPath: /var/www/html/config/domains_urls.yaml
           name: domains-urls

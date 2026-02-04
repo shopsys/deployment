@@ -5,13 +5,9 @@ metadata:
     labels:
         app: cron
 spec:
-    progressDeadlineSeconds: 1500
     replicas: 1
     strategy:
-        rollingUpdate:
-            maxSurge: 1
-            maxUnavailable: 0
-        type: RollingUpdate
+        type: Recreate
     selector:
         matchLabels:
             app: cron
@@ -25,6 +21,7 @@ spec:
             labels:
                 app: cron
         spec:
+            terminationGracePeriodSeconds: 3000
             tolerations:
                 -   key: "workload"
                     operator: "Equal"
@@ -38,8 +35,7 @@ spec:
                                 matchExpressions:
                                     -   key: workload
                                         operator: In
-                                        values:
-                                            - background
+                                        values: ["background"]
             volumes:
                 -   name: domains-urls
                     configMap:
@@ -61,14 +57,30 @@ spec:
                         runAsUser: 0
                     imagePullPolicy: IfNotPresent
                     workingDir: /var/www/html
-                    command: ["/bin/sh","-c"]
-                    args: ["cd /var/www/html && ./phing warmup > /dev/null && rm -rf /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe && crontab -u root /var/spool/cron/template && { crond || cron; } && stdbuf -o0 tail -n +1 -f /tmp/log-pipe"]
+                    command: ["/bin/sh","-lc"]
+                    args:
+                        - >
+                            ./phing warmup > /dev/null
+
+                            # FIFO for logs
+                            rm -f /tmp/log-pipe && mkfifo /tmp/log-pipe && chmod 666 /tmp/log-pipe
+
+                            # crontab
+                            crontab -u root /var/spool/cron/template
+
+                            # run on backround
+                            stdbuf -o0 tail -n +1 -f /tmp/log-pipe &
+
+                            exec crond -f || exec cron -f
                     lifecycle:
                         preStop:
                             exec:
                                 command:
-                                    - sleep
-                                    - '5'
+                                    - /bin/sh
+                                    - -lc
+                                    - |
+                                        ( ./bin/console deploy:cron:lock > /tmp/cron-lock.log 2>&1 || true ) &
+                                        ./bin/console deploy:cron:watch || true
                     volumeMounts:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}

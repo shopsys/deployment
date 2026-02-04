@@ -9,7 +9,7 @@ spec:
     replicas: 1
     strategy:
         rollingUpdate:
-            maxSurge: 1
+            maxSurge: 50%
             maxUnavailable: 0
         type: RollingUpdate
     selector:
@@ -83,21 +83,36 @@ spec:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
                             subPath: "{{DOMAINS_URLS_FILENAME}}"
+                -   name: warmup
+                    image: "{{TAG}}"
+                    command: ["/var/www/html/phing", "-S", "warmup"]
+                    volumeMounts:
+                        -   name: source-codes
+                            mountPath: /var/www/html
+                        -   name: domains-urls
+                            mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
+                            subPath: "{{DOMAINS_URLS_FILENAME}}"
             containers:
                 -   image: "{{TAG}}"
                     name: php-fpm
                     imagePullPolicy: IfNotPresent
                     workingDir: /var/www/html
                     lifecycle:
-                        postStart:
-                            exec:
-                                command: ["/var/www/html/phing", "-S", "warmup"]
                         preStop:
                             exec:
-                                command:
-                                    - sh
-                                    - '-c'
-                                    - sleep 10 && kill -SIGQUIT 1
+                                command: ["/bin/sh","-lc","sleep 10; kill -QUIT 1 || true"]
+                    livenessProbe:
+                        tcpSocket:
+                            port: 9000
+                        initialDelaySeconds: 30
+                        periodSeconds: 10
+                        timeoutSeconds: 2
+                    readinessProbe:
+                        tcpSocket:
+                            port: 9000
+                        initialDelaySeconds: 2
+                        periodSeconds: 5
+                        timeoutSeconds: 2
                     volumeMounts:
                         -   name: source-codes
                             mountPath: /var/www/html
@@ -125,20 +140,24 @@ spec:
                     ports:
                         -   containerPort: 8080
                             name: http
+                        -   containerPort: 80
+                            name: health
                     livenessProbe:
-                        initialDelaySeconds: 30
-                        periodSeconds: 5
-                        timeoutSeconds: 5
                         httpGet:
                             path: /health
-                            port: 80
+                            port: health
+                        initialDelaySeconds: 30
+                        periodSeconds: 10
+                        timeoutSeconds: 3
+                        failureThreshold: 6
                     readinessProbe:
                         httpGet:
                             path: /health
-                            port: 80
-                        initialDelaySeconds: 5
+                            port: health
+                        initialDelaySeconds: 2
                         periodSeconds: 5
-                        timeoutSeconds: 5
+                        timeoutSeconds: 2
+                        failureThreshold: 3
                     volumeMounts:
                         -   name: nginx-default-config
                             mountPath: /etc/nginx/nginx.conf
