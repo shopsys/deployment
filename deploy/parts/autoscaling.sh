@@ -16,7 +16,7 @@ assertVariable "BASE_PATH"
 assertVariable "CONFIGURATION_TARGET_PATH"
 assertVariable "RUNNING_PRODUCTION"
 
-if [[ "${ENABLE_AUTOSCALING:-false}" == "true" ]]; then
+if [[ "${ENABLE_AUTOSCALING:-true}" == "true" ]]; then
     echo -n "Prepare Autoscaling "
 
     MIN_PHP_FPM_REPLICAS="${MIN_PHP_FPM_REPLICAS:-2}"

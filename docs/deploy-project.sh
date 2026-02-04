@@ -11,8 +11,6 @@ function deploy() {
         DOMAIN_HOSTNAME_2
     )
 
-    ENABLE_AUTOSCALING=true
-
     declare -A ENVIRONMENT_VARIABLES=(
         ["APP_SECRET"]=${APP_SECRET}
         ["DATABASE_HOST"]=${POSTGRES_DATABASE_IP_ADDRESS}
