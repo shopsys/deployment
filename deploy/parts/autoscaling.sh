@@ -26,11 +26,11 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
         MAX_STOREFRONT_REPLICAS=3
     fi
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml" spec.minReplicas "${MIN_PHP_FPM_REPLICAS}"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml" spec.maxReplicas "${MAX_PHP_FPM_REPLICAS}"
+    yq e -i ".spec.minReplicas=${MIN_PHP_FPM_REPLICAS}" "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
+    yq e -i ".spec.maxReplicas=${MAX_PHP_FPM_REPLICAS}" "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml" spec.minReplicas "${MIN_STOREFRONT_REPLICAS}"
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml" spec.maxReplicas "${MAX_STOREFRONT_REPLICAS}"
+    yq e -i ".spec.minReplicas=${MIN_STOREFRONT_REPLICAS}" "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
+    yq e -i ".spec.maxReplicas=${MAX_STOREFRONT_REPLICAS}" "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
 fi
 
 

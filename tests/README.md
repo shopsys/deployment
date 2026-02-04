@@ -7,22 +7,22 @@ Tests for verifying Kubernetes manifest generation produces expected output.
 ```bash
 # Run all tests
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  shopsys/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh
 
 # Run specific scenario
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  shopsys/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
   ./tests/run-tests.sh basic-production
 
 # Update expected files after intentional changes
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  shopsys/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
 ./tests/run-tests.sh --update
 
 # List available scenarios
 docker run --rm -v $(pwd):/workspace -w /workspace \
-  shopsys/kubernetes-buildpack:1.2 \
+  shopsys/kubernetes-buildpack:2.0 \
 ./tests/run-tests.sh --list
 ```
 

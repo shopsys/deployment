@@ -19,34 +19,58 @@ for key in "${!ENVIRONMENT_VARIABLES[@]}"; do
         # Consumer deployments
         for CONSUMER_FILE in "${CONFIGURATION_TARGET_PATH}/deployments/"consumer-*.yaml; do
             if [ -f "$CONSUMER_FILE" ]; then
-                yq write --inplace "${CONSUMER_FILE}" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-                yq write --inplace "${CONSUMER_FILE}" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+                yq e -i "
+                      .spec.template.spec.containers[0].env[${ITERATOR}] = {
+                        \"name\": \"${key}\",
+                        \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+                      }
+                    " "${CONSUMER_FILE}"
             fi
         done
 
         # Webserver PHP-FPM deployment
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
 
         # Cron deployment
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/cron.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/cron.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/deployments/cron.yaml"
 
         # Environment configmap for cronjob
         ENV_LINE="        export ${key}='${ENVIRONMENT_VARIABLES[${key}]}'"
         echo "${ENV_LINE}" >> "${CONFIGURATION_TARGET_PATH}/configmap/cron-env.yaml"
 
         # Migration Job - First deploy
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/migrate-application.yaml"
 
         # Migration Job - First deploy with demo data
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/migrate-application.yaml"
 
         # Migration Job - Continuous deploy
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/migrate-application.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/migrate-application.yaml"
 
         ITERATOR=$(expr $ITERATOR + 1)
     fi
@@ -61,8 +85,12 @@ for key in ${!STOREFRONT_ENVIRONMENT_VARIABLES[@]}; do
     then
         echo "Variable '${key}' couldn't be set because it's empty"
     else
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" ${key}
-        yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"${STOREFRONT_ENVIRONMENT_VARIABLES[${key}]}\""
+        yq e -i "
+          .spec.template.spec.containers[0].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${STOREFRONT_ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
 
         ITERATOR=$(expr $ITERATOR + 1)
     fi
@@ -75,19 +103,31 @@ find ${CONFIGURATION_TARGET_PATH} -type f | xargs sed -i  's/nullPlaceholder//' 
 for DOMAIN in ${DOMAINS[@]}; do
     BASENAME=${!DOMAIN}
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"${DOMAIN}\""
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"https://${BASENAME}/\""
+    yq e -i "
+      .spec.template.spec.containers[0].env[${ITERATOR}] = {
+        \"name\": \"${DOMAIN}\",
+        \"value\": \"https://${BASENAME}/\"
+      }
+    " "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
 
     ITERATOR=$(expr $ITERATOR + 1)
 
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"${DOMAIN/DOMAIN_HOSTNAME/PUBLIC_GRAPHQL_ENDPOINT_HOSTNAME}\""
-    yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"https://${BASENAME}/graphql/\""
+    yq e -i "
+      .spec.template.spec.containers[0].env[${ITERATOR}] = {
+        \"name\": \"${DOMAIN/DOMAIN_HOSTNAME/PUBLIC_GRAPHQL_ENDPOINT_HOSTNAME}\",
+        \"value\": \"https://${BASENAME}/graphql/\"
+      }
+    " "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
 
     ITERATOR=$(expr $ITERATOR + 1)
 done
 
-yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].name" "\"INTERNAL_ENDPOINT\""
-yq write --inplace "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml" "spec.template.spec.containers[0].env[${ITERATOR}].value" "\"http://webserver-php-fpm:8080/\""
+yq e -i "
+  .spec.template.spec.containers[0].env[${ITERATOR}] = {
+    \"name\": \"INTERNAL_ENDPOINT\",
+    \"value\": \"http://webserver-php-fpm:8080/\"
+  }
+" "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
 
 
 echo -e "[${GREEN}OK${NO_COLOR}]"

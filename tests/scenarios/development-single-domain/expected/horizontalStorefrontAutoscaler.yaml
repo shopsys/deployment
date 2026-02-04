@@ -2,7 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: storefront
-  namespace: myproject-dev
+  namespace: "myproject-dev"
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -11,9 +11,9 @@ spec:
   minReplicas: 2
   maxReplicas: 3
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 120
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 120

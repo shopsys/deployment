@@ -7,13 +7,13 @@ apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
-    - id: 1
-      url: https://www.shop.com
-    - id: 2
-      url: https://www.shop.de
+      - id: 1
+        url: https://www.shop.com
+      - id: 2
+        url: https://www.shop.de
 kind: ConfigMap
 metadata:
-  name: domains-urls-997f7g7mb7
+  name: domains-urls-47t6ghttc4
   namespace: shop-production
 ---
 apiVersion: v1
@@ -138,7 +138,10 @@ spec:
             weight: 100
       containers:
       - args:
-        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer ]; do \n    php /var/www/html/bin/console messenger:consume email_transport --time-limit=300 --quiet\n    sleep 2\ndone\n"
+        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf
+          -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer
+          ]; do \n    php /var/www/html/bin/console messenger:consume email_transport
+          --time-limit=300 --quiet\n    sleep 2\ndone\n"
         command:
         - /bin/sh
         - -c
@@ -205,7 +208,7 @@ spec:
         value: background
       volumes:
       - configMap:
-          name: domains-urls-997f7g7mb7
+          name: domains-urls-47t6ghttc4
         name: domains-urls
       - name: fe-api-keys-volume
         secret:
@@ -252,7 +255,10 @@ spec:
             weight: 100
       containers:
       - args:
-        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer ]; do \n    php /var/www/html/bin/console messenger:consume order_transport --time-limit=300 --quiet\n    sleep 2\ndone\n"
+        - "PIPE=/tmp/log-pipe\nrm -rf $PIPE\nmkfifo $PIPE\nchmod 666 $PIPE\nstdbuf
+          -o0 tail -n +1 -f $PIPE &\n\nsleep 5\n\nwhile [ ! -f /tmp/stop_consumer
+          ]; do \n    php /var/www/html/bin/console messenger:consume order_transport
+          --time-limit=300 --quiet\n    sleep 2\ndone\n"
         command:
         - /bin/sh
         - -c
@@ -319,7 +325,7 @@ spec:
         value: background
       volumes:
       - configMap:
-          name: domains-urls-997f7g7mb7
+          name: domains-urls-47t6ghttc4
         name: domains-urls
       - name: fe-api-keys-volume
         secret:
@@ -528,5 +534,5 @@ spec:
       restartPolicy: Never
       volumes:
       - configMap:
-          name: domains-urls-997f7g7mb7
+          name: domains-urls-47t6ghttc4
         name: domains-urls
