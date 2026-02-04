@@ -442,22 +442,64 @@ spec:
         - name: RABBITMQ_DEFAULT_PASS
           value: rabbitmq-password
         image: rabbitmq:4.1-management-alpine
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - rabbitmqctl stop_app && sleep 5
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - ping
+          failureThreshold: 5
+          periodSeconds: 30
+          timeoutSeconds: 15
         name: rabbitmq
         ports:
-        - containerPort: 15672
+        - containerPort: 5672
           name: rabbitmq
+          protocol: TCP
+        - containerPort: 15672
+          name: rabbitmq-management
           protocol: TCP
         - containerPort: 15692
           name: exporter
           protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - -q
+            - check_running
+          failureThreshold: 3
+          periodSeconds: 10
+          timeoutSeconds: 10
         resources:
+          limits:
+            memory: 512Mi
           requests:
             cpu: 20m
+            memory: 256Mi
+        startupProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - ping
+          failureThreshold: 30
+          periodSeconds: 10
         volumeMounts:
         - mountPath: /var/lib/rabbitmq
           name: rabbitmq-data
       imagePullSecrets:
       - name: dockerregistry
+      terminationGracePeriodSeconds: 90
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
   volumeClaimTemplates:
   - metadata:
       name: rabbitmq-data
