@@ -919,6 +919,27 @@ metadata:
   name: storefront
   namespace: myproject-production
 spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      - periodSeconds: 60
+        type: Percent
+        value: 30
+      selectPolicy: Max
+      stabilizationWindowSeconds: 900
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 2
+      - periodSeconds: 60
+        type: Percent
+        value: 50
+      selectPolicy: Max
+      stabilizationWindowSeconds: 60
   maxReplicas: 3
   metrics:
   - resource:
@@ -939,6 +960,27 @@ metadata:
   name: webserver-php-fpm
   namespace: myproject-production
 spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      - periodSeconds: 60
+        type: Percent
+        value: 30
+      selectPolicy: Max
+      stabilizationWindowSeconds: 900
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 2
+      - periodSeconds: 60
+        type: Percent
+        value: 50
+      selectPolicy: Max
+      stabilizationWindowSeconds: 60
   maxReplicas: 3
   metrics:
   - containerResource:
