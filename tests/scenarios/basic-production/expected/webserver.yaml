@@ -924,7 +924,7 @@ spec:
         type: Percent
         value: 30
       selectPolicy: Max
-      stabilizationWindowSeconds: 900
+      stabilizationWindowSeconds: 600
     scaleUp:
       policies:
       - periodSeconds: 60
@@ -965,7 +965,7 @@ spec:
         type: Percent
         value: 30
       selectPolicy: Max
-      stabilizationWindowSeconds: 900
+      stabilizationWindowSeconds: 600
     scaleUp:
       policies:
       - periodSeconds: 60
