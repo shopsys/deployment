@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.4.0 to v4.5.0
+
+- added gopay payment notification url handled by backend with fallback to storefront ([#65](https://github.com/shopsys/deployment/pull/65))
+
 ## Upgrade from v4.3.0 to v4.4.0
 
 - yq was updated to the newest version ([#63](https://github.com/shopsys/deployment/pull/63))
