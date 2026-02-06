@@ -172,6 +172,19 @@ data:
             return 470; # send to @app
         }
 
+        location ~ ^/(?:[^/]+/)?order/payment-status-notify(?:/|$) {
+            fastcgi_intercept_errors on;
+            add_header "Access-Control-Allow-Origin" "";
+
+            fastcgi_pass php-upstream;
+            include fastcgi_params;
+            fastcgi_param DOCUMENT_ROOT $realpath_root;
+            fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+            fastcgi_param HTTPS $http_x_forwarded_proto;
+            fastcgi_param HTTP_HOST $request_host;
+            error_page 404 = @storefront;
+        }
+
         # location for administration interface, uses admin error pages
         location ~ ^/(?:[^/]+/)?(admin|ckeditor|elfinder(\.main\.js)?|efconnect|build|bundles)(?:/|$) {
             # hide dotfiles (send to @app)
