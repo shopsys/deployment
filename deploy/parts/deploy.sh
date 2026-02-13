@@ -103,7 +103,7 @@ fi
 
 if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
     echo -n "    Show configuration "
-    runCommand "ERROR" "kustomize build --load_restrictor none \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\""
+    runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\""
 
     echo ""
     echo -e "section_start:`date +%s`:migrate_application_section\r\e[0K Configuration"
@@ -113,7 +113,7 @@ if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
 fi
 
 echo -n "    Apply configuration "
-runCommand "ERROR" "kustomize build --load_restrictor none \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" | kubectl apply -f -"
+runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" | kubectl apply -f -"
 
 echo -n "    Waiting for migrate application "
 
@@ -153,14 +153,14 @@ else
     echo ""
 
     echo -n "Deploy new cron container "
-    runCommand "ERROR" "kustomize build --load_restrictor none \"${CONFIGURATION_TARGET_PATH}/kustomize/cron\" | kubectl apply -f -"
+    runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/cron\" | kubectl apply -f -"
 fi
 
 echo "Deploy new Webserver and PHP-FPM container:"
 
 if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
     echo -n "    Show PHP-FPM container configuration with Storefront"
-    runCommand "ERROR" "kustomize build --load_restrictor none \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\""
+    runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\""
 
     echo ""
     echo -e "section_start:`date +%s`:deploy_php_fpm_section\r\e[0K Show PHP-FPM configuration"
@@ -178,7 +178,7 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
 fi
 
 echo -n "    Deploy Webserver and PHP-FPM container with Storefront"
-runCommand "ERROR" "kustomize build --load_restrictor none  \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\" | kubectl apply -f -"
+runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone  \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\" | kubectl apply -f -"
 
 echo -n "    Waiting for start new PHP-FPM and Storefront container (In case of fail you need to manually check what is state of application)"
 runCommand "ERROR" "kubectl rollout status --namespace=${PROJECT_NAME} deployment/webserver-php-fpm deployment/storefront --watch"
