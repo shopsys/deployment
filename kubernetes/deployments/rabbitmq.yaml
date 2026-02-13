@@ -5,6 +5,10 @@ metadata:
 spec:
     serviceName: rabbitmq
     replicas: 1
+    updateStrategy:
+        type: RollingUpdate
+        rollingUpdate:
+            partition: 0
     selector:
         matchLabels:
             app: rabbitmq
@@ -30,6 +34,9 @@ spec:
                     image: rabbitmq:4.1-management-alpine
                     ports:
                         -   name: rabbitmq
+                            containerPort: 5672
+                            protocol: TCP
+                        -   name: rabbitmq-management
                             containerPort: 15672
                             protocol: TCP
                         -   name: exporter
@@ -40,12 +47,37 @@ spec:
                             value: "{{RABBITMQ_DEFAULT_USER}}"
                         -   name: RABBITMQ_DEFAULT_PASS
                             value: "{{RABBITMQ_DEFAULT_PASS}}"
+                    lifecycle:
+                        preStop:
+                            exec:
+                                command: [ "sh", "-c", "rabbitmqctl stop_app && sleep 5" ]
                     resources:
                         requests:
                             cpu: "20m"
+                            memory: "256Mi"
+                        limits:
+                            memory: "512Mi"
+                    startupProbe:
+                        exec:
+                            command: [ "rabbitmq-diagnostics", "ping" ]
+                        failureThreshold: 30
+                        periodSeconds: 10
+                    livenessProbe:
+                        exec:
+                            command: ["rabbitmq-diagnostics", "ping"]
+                        periodSeconds: 30
+                        timeoutSeconds: 15
+                        failureThreshold: 5
+                    readinessProbe:
+                        exec:
+                            command: [ "rabbitmq-diagnostics", "-q", "check_running" ]
+                        periodSeconds: 10
+                        timeoutSeconds: 10
+                        failureThreshold: 3
                     volumeMounts:
                         -   name: rabbitmq-data
                             mountPath: /var/lib/rabbitmq
+            terminationGracePeriodSeconds: 90
             imagePullSecrets:
                 -   name: dockerregistry
     volumeClaimTemplates:

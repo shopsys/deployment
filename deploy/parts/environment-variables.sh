@@ -36,6 +36,14 @@ for key in "${!ENVIRONMENT_VARIABLES[@]}"; do
           }
         " "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
 
+        # Webserver PHP-FPM warmup container
+        yq e -i "
+          .spec.template.spec.initContainers[1].env[${ITERATOR}] = {
+            \"name\": \"${key}\",
+            \"value\": \"${ENVIRONMENT_VARIABLES[$key]}\"
+          }
+        " "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+
         # Cron deployment
         yq e -i "
           .spec.template.spec.containers[0].env[${ITERATOR}] = {

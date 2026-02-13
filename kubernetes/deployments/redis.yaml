@@ -27,19 +27,6 @@ spec:
                         name: redis
                         defaultMode: 0755
             containers:
-                -   name: redis-exporter
-                    image: "oliver006/redis_exporter"
-                    imagePullPolicy: Always
-                    ports:
-                        -   name: exporter
-                            containerPort: 9121
-                            protocol: TCP
-                    resources:
-                        limits:
-                            memory: 128Mi
-                        requests:
-                            cpu: 10m
-                            memory: 128Mi
                 -   name: redis
                     image: "{{REDIS_VERSION}}"
                     ports:
@@ -76,3 +63,16 @@ spec:
                         requests:
                             memory: "2500Mi"
                             cpu: "100m"
+                -   name: redis-exporter
+                    image: "oliver006/redis_exporter"
+                    imagePullPolicy: Always
+                    ports:
+                        -   name: exporter
+                            containerPort: 9121
+                            protocol: TCP
+                    resources:
+                        limits:
+                            memory: 128Mi
+                        requests:
+                            cpu: 10m
+                            memory: 128Mi

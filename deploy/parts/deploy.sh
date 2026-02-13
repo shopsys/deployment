@@ -11,7 +11,6 @@ assertVariable "DEPLOY_REGISTER_USER"
 assertVariable "DEPLOY_REGISTER_PASSWORD"
 
 assertVariable "BASIC_AUTH_PATH"
-assertVariable "ENABLE_AUTOSCALING"
 assertVariable "RUNNING_PRODUCTION"
 FIRST_DEPLOY_LOAD_DEMO_DATA=${FIRST_DEPLOY_LOAD_DEMO_DATA:-0}
 
@@ -26,11 +25,7 @@ echo -n "    Delete secret for docker registry "
 runCommand "SKIP" "kubectl delete secret dockerregistry -n ${PROJECT_NAME}"
 
 echo -n "    Create new secret for docker registry "
-if [ "${GCLOUD_DEPLOY}" = "true" ]; then
-    runCommand "ERROR" "kubectl create secret docker-registry dockerregistry --docker-server=eu.gcr.io --docker-username _json_key --docker-email ${GCLOUD_CONTAINER_REGISTRY_EMAIL} --docker-password='${GCLOUD_CONTAINER_REGISTRY_ACCOUNT}' -n ${PROJECT_NAME}"
-else
-    runCommand "ERROR" "kubectl create secret docker-registry dockerregistry --docker-server=${CI_REGISTRY} --docker-username=${DEPLOY_REGISTER_USER} --docker-password=${DEPLOY_REGISTER_PASSWORD} -n ${PROJECT_NAME}"
-fi
+runCommand "ERROR" "kubectl create secret docker-registry dockerregistry --docker-server=${CI_REGISTRY} --docker-username=${DEPLOY_REGISTER_USER} --docker-password=${DEPLOY_REGISTER_PASSWORD} -n ${PROJECT_NAME}"
 
 if [ ${RUNNING_PRODUCTION} -eq "0" ] || [ ${#FORCE_HTTP_AUTH_IN_PRODUCTION[@]} -ne "0" ]; then
     echo -n "    Create or update secret for http auth "
@@ -51,14 +46,11 @@ fi
 if [ "${RUNNING_PRODUCTION}" -eq "0" ] || [ "${DOWNSCALE_RESOURCE:-0}" -eq "1" ]; then
     echo -n "    Replace pods CPU requests to minimum (for Devel cluster only) "
 
-    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
-    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
-    yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
-    yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
-    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/rabbitmq.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.1"' "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.1"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
 
     yq e -i '.spec.template.spec.containers[0].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
-    yq e -i '.spec.template.spec.containers[1].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
 
     echo -e "[${GREEN}OK${NO_COLOR}]"
 else
@@ -77,14 +69,10 @@ else
     fi
 fi
 
-DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}') || true
-
-if [[ -n ${DEPLOYED_CRON_POD} ]]; then
-    echo -n "Lock crons to prevent run next iteration "
-    runCommand "ERROR" "kubectl exec -t --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD} -- bash -c \"./phing -S cron-lock > /dev/null 2>&1 & disown\""
-
-    echo -n "Waiting until all cron instances are done "
-    runCommand "ERROR" "kubectl exec --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD} -- ./phing -S cron-watch"
+if kubectl get deployment/cron --namespace="${PROJECT_NAME}" >/dev/null 2>&1; then
+  echo -n "Waiting until all cron instances are done and stop cron"
+  runCommand "ERROR" "kubectl scale deployment/cron --namespace=${PROJECT_NAME} --replicas=0"
+  runCommand "ERROR" "kubectl rollout status deployment/cron --namespace=${PROJECT_NAME} --timeout=60m"
 fi
 
 echo "Migrate Application (database migrations, elasticsearch migrations, ...):"
@@ -130,7 +118,7 @@ if [ ${MIGRATION_COMPLETE_EXIT_CODE} -eq 1 ]; then
     echo -e "[${RED}ERROR${NO_COLOR}]"
 
     echo -n "Restore previous cron container "
-    runCommand "SKIP" "kubectl delete pod --namespace=${PROJECT_NAME} ${DEPLOYED_CRON_POD}"
+    runCommand "SKIP" "kubectl scale deployment/cron --namespace=${PROJECT_NAME} --replicas=1"
 
     RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[0].metadata.name}')
 
@@ -151,9 +139,6 @@ else
     kubectl logs job/migrate-application --namespace=${PROJECT_NAME}
     echo -e "section_end:`date +%s`:migrate_application_logs_section\r\e[0K"
     echo ""
-
-    echo -n "Deploy new cron container "
-    runCommand "ERROR" "kustomize build --load_restrictor none \"${CONFIGURATION_TARGET_PATH}/kustomize/cron\" | kubectl apply -f -"
 fi
 
 echo "Deploy new Webserver and PHP-FPM container:"
@@ -169,39 +154,11 @@ if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
     echo ""
 fi
 
-if [ ${ENABLE_AUTOSCALING} = true ]; then
-    echo -n "    Delete previous Horizontal pod autoscaler for Backend "
-    runCommand "SKIP" "kubectl delete hpa webserver-php-fpm --namespace=${PROJECT_NAME}"
-
-    echo -n "    Delete previous Horizontal pod autoscaler for Storefront "
-    runCommand "SKIP" "kubectl delete hpa storefront --namespace=${PROJECT_NAME}"
-fi
-
 echo -n "    Deploy Webserver and PHP-FPM container with Storefront"
 runCommand "ERROR" "kustomize build --load_restrictor none  \"${CONFIGURATION_TARGET_PATH}/kustomize/webserver\" | kubectl apply -f -"
 
 echo -n "    Waiting for start new PHP-FPM and Storefront container (In case of fail you need to manually check what is state of application)"
 runCommand "ERROR" "kubectl rollout status --namespace=${PROJECT_NAME} deployment/webserver-php-fpm deployment/storefront --watch"
-
-if [ ${ENABLE_AUTOSCALING} = true ]; then
-    echo -n "    Deploy Horizontal pod autoscaler for Backend "
-
-    if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-    fi
-
-    runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalPodAutoscaler.yaml"
-
-    echo -n "    Deploy Horizontal pod autoscaler for Storefront "
-
-    if [ ${RUNNING_PRODUCTION} -eq "0" ]; then
-        yq e -i '.spec.minReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-        yq e -i '.spec.maxReplicas = 2' "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-    fi
-
-    runCommand "ERROR" "kubectl apply -f ${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
-fi
 
 RUNNING_WEBSERVER_PHP_FPM_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=webserver-php-fpm -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}')
 
