@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.5.0 to v4.6.0
+
+- upgraded nginx to version 1.29 ([#67](https://github.com/shopsys/deployment/pull/67))
+
 ## Upgrade from v4.4.0 to v4.5.0
 
 - added gopay payment notification url handled by backend with fallback to storefront ([#65](https://github.com/shopsys/deployment/pull/65))
