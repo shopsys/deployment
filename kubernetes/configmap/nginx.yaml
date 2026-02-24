@@ -285,6 +285,9 @@ data:
                 fastcgi_pass php-upstream;
                 include fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $realpath_root/imageResizer.php;
+                fastcgi_param HTTPS $http_x_forwarded_proto;
+                fastcgi_param HTTP_HOST $request_host;
+                fastcgi_param REQUEST_SCHEME $http_x_forwarded_proto;
             }
         
             # plain 404 page for missing files accessed via CDN
