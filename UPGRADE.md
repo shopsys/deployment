@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.6.0 to v4.6.1
+
+- fix redirects within imageResizer ([#68](https://github.com/shopsys/deployment/pull/68))
+
 ## Upgrade from v4.5.0 to v4.6.0
 
 - upgraded nginx to version 1.29 ([#67](https://github.com/shopsys/deployment/pull/67))
