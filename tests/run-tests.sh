@@ -130,6 +130,12 @@ setup_test_environment() {
     ln -s "${PROJECT_ROOT}/kubernetes" "${test_tmp}/vendor/shopsys/deployment/kubernetes"
     ln -s "${PROJECT_ROOT}/deploy" "${test_tmp}/vendor/shopsys/deployment/deploy"
 
+    # Provide required project-level overrides that are no longer shipped by deployment package.
+    local fixtures_orchestration_path="${PROJECT_ROOT}/tests/fixtures/orchestration"
+    if [ -d "${fixtures_orchestration_path}" ]; then
+        cp -R "${fixtures_orchestration_path}/." "${test_tmp}/orchestration/"
+    fi
+
     # Create domains_urls.yaml.dist dynamically based on domain count
     echo "domains_urls:" > "${test_tmp}/config/domains_urls.yaml.dist"
     for i in $(seq 1 ${domain_count}); do
