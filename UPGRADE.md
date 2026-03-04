@@ -10,6 +10,11 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v4.6.1 to v5.0.0
+
+- remove files that are already part of project-base by default ([#66](https://github.com/shopsys/deployment/pull/66))
+- if your project does not include `nginx.yaml` file for Kubernetes deployment, you need to copy-paste the [file](https://github.com/shopsys/project-base/blob/HEAD/app/orchestration/kubernetes/configmap/nginx.yaml) from project-base repository into `app/orchestration/kubernetes/configmap/nginx.yaml` in your project
+
 ## Upgrade from v4.6.0 to v4.6.1
 
 - fix redirects within imageResizer ([#68](https://github.com/shopsys/deployment/pull/68))
