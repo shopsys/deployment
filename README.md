@@ -4,13 +4,14 @@
 
 1. Install package `composer require shopsys/deployment`
 
-2. Copy [deploy-project.sh](./docs/deploy-project.sh) into your project to `deploy/deploy-project.sh` 
+2. Copy [deploy-project.sh](https://github.com/shopsys/project-base/blob/HEAD/app/deploy/deploy-project.sh) into your project to `app/deploy/deploy-project.sh` 
 
-3. Create or [copy](./docs/basicHttpAuth) htpasswd file with login credentials to `deploy/basicHttpAuth` 
+3. Create or [copy](https://github.com/shopsys/project-base/blob/HEAD/app/deploy/basicHttpAuth) htpasswd file with login credentials to `app/deploy/basicHttpAuth` 
     > Default login for basicHttpAuth is `username/password`
       For info about how change http auth credentials see [Change HTTP auth](#change-http-auth) 
 
-4. Update your `gitlab-ci.yml`
+4. Copy [nginx.yaml](https://github.com/shopsys/project-base/blob/HEAD/app/orchestration/kubernetes/configmap/nginx.yaml) into your project to `app/orchestration/kubernetes/configmap/nginx.yaml`
+5. Update your `gitlab-ci.yml`
     - create new stage with name deploy:
         ```diff
         stages:
@@ -77,9 +78,9 @@
                 url: https://${DOMAIN_HOSTNAME_1}
         ```
 
-5. Set Environment variables to in Gitlab (Settings -> CI/CD -> Variables)
+6. Set Environment variables to in Gitlab (Settings -> CI/CD -> Variables)
 
-6. Push changes and have fun
+7. Push changes and have fun
 
 ## Environment Variables
 
@@ -111,11 +112,11 @@ If you want to define your custom variables see [Define custom variables](#defin
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
-You can add your custom variables. *Do not forget to edit [deploy-project.sh](./docs/deploy-project.sh)*
+You can add your custom variables. *Do not forget to edit your `deploy-project.sh` file*
 
 ## Customize deployment
 
-You can override kubernetes manifests by place your custom manifest into `orchestration/kubernetes/` path in your project
+You can override Kubernetes manifests by placing your custom manifests into `app/orchestration/kubernetes/` in your project.
 
 *You need to mirror folders to be able to override manifests*
 
@@ -131,7 +132,7 @@ You can override kubernetes manifests by place your custom manifest into `orches
           </exec>
       </target>
    ```
-2. Declare new cron to your deploy configuration file [deploy-project.sh](./docs/deploy-project.sh):
+2. Declare new cron to your deploy configuration file (`deploy-project.sh`):
    
    As a key there is used phing target that you created in step 1. and value represents [crontab timer](https://crontab.guru/#*/5_*_*_*_*)
    ```diff
@@ -155,7 +156,7 @@ You can override kubernetes manifests by place your custom manifest into `orches
     | DOMAIN_HOSTNAME_2             | sk.mydomain.prod.shopsys.cloud     |
     | DOMAIN_HOSTNAME_3             | en.mydomain.prod.shopsys.cloud     |
 
-2. Edit [deploy-project.sh](./docs/deploy-project.sh)
+2. Edit your `deploy-project.sh` file:
     ```diff
     ...
     function deploy() {
@@ -170,7 +171,7 @@ You can override kubernetes manifests by place your custom manifest into `orches
 ### Define custom variables
 
 1. Create Environment variable
-2. Edit [deploy-project.sh](./docs/deploy-project.sh)
+2. Edit your `deploy-project.sh` file:
     ```diff
     ...
     declare -A ENVIRONMENT_VARIABLES=(
@@ -184,7 +185,7 @@ You can override kubernetes manifests by place your custom manifest into `orches
 
 ### Set custom Redis version 
 
-Add new variable to `deploy/deploy-project.sh` and specify your redis version
+Add new variable to `deploy-project.sh` and specify your redis version
 
 ```diff
   ...
@@ -198,7 +199,7 @@ Add new variable to `deploy/deploy-project.sh` and specify your redis version
 
 ### Enable Horizontal pod autoscaling
 
-Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
+Add new variables to `deploy-project.sh` to enable pod autoscaling:
 
 - Enable this functionality:
   ```diff
@@ -219,7 +220,7 @@ Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
   - `MAX_STOREFRONT_REPLICAS`
 
 ### How to launch only some domains
-  Add to `deploy/deploy-project.sh` new array `FORCE_HTTP_AUTH_IN_PRODUCTION` with domains which should be not accessible without HTTP auth:
+  Add to `deploy-project.sh` new array `FORCE_HTTP_AUTH_IN_PRODUCTION` with domains which should be not accessible without HTTP auth:
       
   ```diff
   ...
@@ -237,8 +238,8 @@ Add new variables to `deploy/deploy-project.sh` to enable pod autoscaling:
 ### Change HTTP auth
 
 1. Generate new HTTP auth string (for example [here](https://www.web2generators.com/apache-tools/htpasswd-generator)), or by command `htpasswd -nb username password`
-2. Replace or add new HTTP auth string to `deploy/basicHttpAuth`
-3. Set new credentials to variable in `deploy/deploy-project.sh`
+2. Replace or add new HTTP auth string to `basicHttpAuth`
+3. Set new credentials to variable in `deploy-project.sh`
   ```diff
   ...
   function deploy() {
@@ -263,9 +264,9 @@ You can set sensitive whitelisted IPs in your env variable like this:
 WHITELIST_IPS="8.8.8.8, 217.23.44.23, 93.111.234.111"
 ```
 
-#### `DEFAULT_WHITELIST_IPS` env variable in `deploy/deploy-project.sh`
+#### `DEFAULT_WHITELIST_IPS` env variable in `deploy-project.sh`
 
-For non-sensitive IPs, that you want to share between all environments you can use `DEFAULT_WHITELIST_IPS` in `deploy/deploy-project.sh` like this:
+For non-sensitive IPs, that you want to share between all environments you can use `DEFAULT_WHITELIST_IPS` in `deploy-project.sh` like this:
 
 ```shell
 #                      Some IP   Another IP    Some service

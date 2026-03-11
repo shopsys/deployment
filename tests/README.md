@@ -42,6 +42,7 @@ Using `--user "$(id -u):$(id -g)"` ensures generated files are owned by your loc
 ```
 tests/
 ├── run-tests.sh              # Main test runner
+├── fixtures/                 # Shared project-level overrides copied to tmp test project
 ├── lib/
 │   ├── test-helpers.sh       # Helper functions
 │   └── default-env.sh        # Shared default environment variables
@@ -67,3 +68,5 @@ tests/
 3. Runs scenario's `deploy-project.sh generate`
 4. Builds kustomize outputs
 5. Compares with expected files
+
+`tests/fixtures/orchestration/kubernetes/configmap/nginx.yaml` is intentionally tracked because the deployment package no longer ships `kubernetes/configmap/nginx.yaml`, but test scenarios still need a project-level override to build webserver manifests.
