@@ -12,6 +12,7 @@
 
 ## Upgrade from v5.0.0 to v5.1.0
 
+- removed `namespace.yaml` manifest from kustomize resources ([#79](https://github.com/shopsys/deployment/pull/79))
 - define autoscaling behavior with rolling update strategy ([#78](https://github.com/shopsys/deployment/pull/78))
 - removed GCloud-specific docker registry secret creation ([#77](https://github.com/shopsys/deployment/pull/77))
 - improved probes and graceful shutdown for storefront ([#76](https://github.com/shopsys/deployment/pull/76))
