@@ -178,8 +178,6 @@ build_outputs() {
     fi
 
     # Copy individual files that aren't built by kustomize
-    cp "${config_path}/horizontalPodAutoscaler.yaml" "${output_dir}/" 2>/dev/null || true
-    cp "${config_path}/horizontalStorefrontAutoscaler.yaml" "${output_dir}/" 2>/dev/null || true
     cp "${config_path}/namespace.yaml" "${output_dir}/" 2>/dev/null || true
 
     echo "$output_dir"

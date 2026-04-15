@@ -5,7 +5,6 @@ source "$(dirname "$0")/../../lib/scenario-base.sh"
 DOMAINS=(DOMAIN_HOSTNAME_1 DOMAIN_HOSTNAME_2)
 export RUNNING_PRODUCTION=1
 export FIRST_DEPLOY=0
-ENABLE_AUTOSCALING=true
 
 declare -A CRON_INSTANCES=(
     ["cron"]='*/5 * * * *'

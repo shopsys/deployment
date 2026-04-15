@@ -6,7 +6,6 @@ source "$(dirname "$0")/../../lib/scenario-base.sh"
 DOMAINS=(DOMAIN_HOSTNAME_1)
 export RUNNING_PRODUCTION=0
 export WHITELIST_IPS="10.0.0.0/8,192.168.0.0/16"
-ENABLE_AUTOSCALING=true
 
 declare -A CRON_INSTANCES=(
     ["cron"]='*/5 * * * *'
