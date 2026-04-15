@@ -12,6 +12,7 @@
 
 ## Upgrade from v5.0.0 to v5.1.0
 
+- removed GCloud-specific docker registry secret creation ([#77](https://github.com/shopsys/deployment/pull/77))
 - improved probes and graceful shutdown for storefront ([#76](https://github.com/shopsys/deployment/pull/76))
 - added probes for RabbitMQ with graceful shutdown ([#75](https://github.com/shopsys/deployment/pull/75))
 - changed container order for Redis ([#74](https://github.com/shopsys/deployment/pull/74))
