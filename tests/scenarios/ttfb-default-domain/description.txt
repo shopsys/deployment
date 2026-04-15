@@ -1,0 +1,1 @@
+TTFB probes on the default domain (DOMAIN_HOSTNAME_1), two-domain production setup

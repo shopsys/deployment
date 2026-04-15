@@ -252,6 +252,22 @@ Add new variables to `deploy-project.sh` to enable pod autoscaling:
   ...
   ```
 
+### Enable TTFB monitoring (Prometheus Probe)
+
+Add a `TTFB_PROBES` associative array to `deploy-project.sh` — key is the probe
+type, value is the URL path (empty for root):
+
+```diff
++ declare -A TTFB_PROBES=(
++     ["Homepage"]="/"
++     ["Detail"]="/some/product-path"
++ )
++ TTFB_PROBES_DOMAIN=DOMAIN_HOSTNAME_1   # optional; default DOMAIN_HOSTNAME_1
+```
+
+Probes are generated only for production. If the domain is behind
+HTTP auth, `HTTP_AUTH_CREDENTIALS` is automatically embedded into the probe URL.
+
 ### Whitelist IP addresses
 
 There are two ways to set whitelisted IP addresses.
