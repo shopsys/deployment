@@ -12,6 +12,7 @@
 
 ## Upgrade from v5.0.0 to v5.1.0
 
+- added probes for RabbitMQ with graceful shutdown ([#75](https://github.com/shopsys/deployment/pull/75))
 - changed container order for Redis ([#74](https://github.com/shopsys/deployment/pull/74))
 - cache warmup is now run as an init container instead of a `postStart` lifecycle hook ([#73](https://github.com/shopsys/deployment/pull/73))
 - cron pod is now always deleted gracefully ([#72](https://github.com/shopsys/deployment/pull/72))
