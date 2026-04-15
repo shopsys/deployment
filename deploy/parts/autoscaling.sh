@@ -33,5 +33,11 @@ if [ ${ENABLE_AUTOSCALING} = true ]; then
     yq e -i ".spec.maxReplicas=${MAX_STOREFRONT_REPLICAS}" "${CONFIGURATION_TARGET_PATH}/horizontalStorefrontAutoscaler.yaml"
 fi
 
+yq e -i '
+    .resources += [
+      "../../horizontalPodAutoscaler.yaml",
+      "../../horizontalStorefrontAutoscaler.yaml"
+    ]
+' "${CONFIGURATION_TARGET_PATH}/kustomize/webserver/kustomization.yaml"
 
 echo -e "[${GREEN}OK${NO_COLOR}]"
