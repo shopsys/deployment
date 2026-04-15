@@ -353,19 +353,6 @@ spec:
         app: redis
     spec:
       containers:
-      - image: oliver006/redis_exporter
-        imagePullPolicy: Always
-        name: redis-exporter
-        ports:
-        - containerPort: 9121
-          name: exporter
-          protocol: TCP
-        resources:
-          limits:
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 128Mi
       - args:
         - /usr/local/etc/redis/redis.conf
         image: redis:7.4-alpine
@@ -402,6 +389,19 @@ spec:
         - mountPath: /usr/local/etc/redis/redis.conf
           name: config
           subPath: redis.conf
+      - image: oliver006/redis_exporter
+        imagePullPolicy: Always
+        name: redis-exporter
+        ports:
+        - containerPort: 9121
+          name: exporter
+          protocol: TCP
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
       volumes:
       - configMap:
           defaultMode: 493

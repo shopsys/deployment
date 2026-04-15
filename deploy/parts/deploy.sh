@@ -54,11 +54,11 @@ if [ "${RUNNING_PRODUCTION}" -eq "0" ] || [ "${DOWNSCALE_RESOURCE:-0}" -eq "1" ]
     yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
     yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
     yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
-    yq e -i '.spec.template.spec.containers[1].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
     yq e -i '.spec.template.spec.containers[0].resources.requests.cpu = "0.01"' "${CONFIGURATION_TARGET_PATH}/deployments/rabbitmq.yaml"
 
     yq e -i '.spec.template.spec.containers[0].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
-    yq e -i '.spec.template.spec.containers[1].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
+    yq e -i '.spec.template.spec.containers[0].resources.requests.memory = "100Mi"' "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
 
     echo -e "[${GREEN}OK${NO_COLOR}]"
 else
