@@ -1,0 +1,1 @@
+TTFB probes against a domain behind HTTP basic auth — HTTP_AUTH_CREDENTIALS must be embedded into the probe URL
