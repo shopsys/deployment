@@ -12,6 +12,7 @@
 
 ## Upgrade from v5.0.0 to v5.1.0
 
+- cron pod is now always deleted gracefully ([#72](https://github.com/shopsys/deployment/pull/72))
 - health check for webserver now uses PHP-FPM `ping` endpoint instead of nginx `stub_status` ([#71](https://github.com/shopsys/deployment/pull/71))
 - update the `/health` location block in `project-nginx.conf` in your project's `app/orchestration/kubernetes/configmap/nginx.yaml` file to pass the request to PHP-FPM:
     ```diff

@@ -147,9 +147,6 @@ else
     kubectl logs job/migrate-application --namespace=${PROJECT_NAME}
     echo -e "section_end:`date +%s`:migrate_application_logs_section\r\e[0K"
     echo ""
-
-    echo -n "Deploy new cron container "
-    runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/cron\" | kubectl apply -f -"
 fi
 
 echo "Deploy new Webserver and PHP-FPM container:"
