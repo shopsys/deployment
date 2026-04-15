@@ -581,6 +581,11 @@ spec:
   selector:
     matchLabels:
       app: storefront
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -674,7 +679,7 @@ spec:
       app: webserver-php-fpm
   strategy:
     rollingUpdate:
-      maxSurge: 1
+      maxSurge: 50%
       maxUnavailable: 0
     type: RollingUpdate
   template:
@@ -923,6 +928,89 @@ spec:
         secret:
           defaultMode: 420
           secretName: fe-api-keys
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: storefront
+  namespace: myproject-production
+spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      - periodSeconds: 60
+        type: Percent
+        value: 30
+      selectPolicy: Max
+      stabilizationWindowSeconds: 600
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 2
+      - periodSeconds: 60
+        type: Percent
+        value: 50
+      selectPolicy: Max
+      stabilizationWindowSeconds: 60
+  maxReplicas: 3
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 120
+        type: Utilization
+    type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: storefront
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: webserver-php-fpm
+  namespace: myproject-production
+spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      - periodSeconds: 60
+        type: Percent
+        value: 30
+      selectPolicy: Max
+      stabilizationWindowSeconds: 600
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 2
+      - periodSeconds: 60
+        type: Percent
+        value: 50
+      selectPolicy: Max
+      stabilizationWindowSeconds: 60
+  maxReplicas: 3
+  metrics:
+  - containerResource:
+      container: php-fpm
+      name: cpu
+      target:
+        averageUtilization: 120
+        type: Utilization
+    type: ContainerResource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: webserver-php-fpm
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
