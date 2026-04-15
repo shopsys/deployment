@@ -12,6 +12,7 @@
 
 ## Upgrade from v5.0.0 to v5.1.0
 
+- changed container order for Redis ([#74](https://github.com/shopsys/deployment/pull/74))
 - cache warmup is now run as an init container instead of a `postStart` lifecycle hook ([#73](https://github.com/shopsys/deployment/pull/73))
 - cron pod is now always deleted gracefully ([#72](https://github.com/shopsys/deployment/pull/72))
 - health check for webserver now uses PHP-FPM `ping` endpoint instead of nginx `stub_status` ([#71](https://github.com/shopsys/deployment/pull/71))
