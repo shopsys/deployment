@@ -83,15 +83,21 @@ spec:
                         -   name: domains-urls
                             mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
                             subPath: "{{DOMAINS_URLS_FILENAME}}"
+                -   name: warmup
+                    image: "{{TAG}}"
+                    command: ["/var/www/html/phing", "-S", "warmup"]
+                    volumeMounts:
+                        -   name: source-codes
+                            mountPath: /var/www/html
+                        -   name: domains-urls
+                            mountPath: /var/www/html/{{DOMAINS_URLS_FILEPATH}}
+                            subPath: "{{DOMAINS_URLS_FILENAME}}"
             containers:
                 -   image: "{{TAG}}"
                     name: php-fpm
                     imagePullPolicy: IfNotPresent
                     workingDir: /var/www/html
                     lifecycle:
-                        postStart:
-                            exec:
-                                command: ["/var/www/html/phing", "-S", "warmup"]
                         preStop:
                             exec:
                                 command: ["/bin/sh","-lc","sleep 10; kill -QUIT 1 || true"]
