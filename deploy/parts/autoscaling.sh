@@ -5,11 +5,7 @@ echo -n "Prepare Autoscaling "
 assertVariable "BASE_PATH"
 assertVariable "CONFIGURATION_TARGET_PATH"
 
-if [ -z ${ENABLE_AUTOSCALING} ]; then
-    ENABLE_AUTOSCALING=false
-fi
-
-if [ ${ENABLE_AUTOSCALING} = true ]; then
+if [[ "${ENABLE_AUTOSCALING:-true}" == "true" ]]; then
     if [ -z ${MIN_PHP_FPM_REPLICAS} ]; then
         MIN_PHP_FPM_REPLICAS=2
     fi

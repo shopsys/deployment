@@ -197,11 +197,9 @@ Add new variable to `deploy-project.sh` and specify your redis version
   ...
 ```
 
-### Enable Horizontal pod autoscaling
+### Horizontal pod autoscaling
 
-Add new variables to `deploy-project.sh` to enable pod autoscaling:
-
-- Enable this functionality:
+- You can disable autoscaling by setting `ENABLE_AUTOSCALING=false` in `deploy-project.sh`:
   ```diff
   ...
   function deploy() {
@@ -210,7 +208,7 @@ Add new variables to `deploy-project.sh` to enable pod autoscaling:
           ...
       )
     
-  +   ENABLE_AUTOSCALING=true
+  +   ENABLE_AUTOSCALING=false
   ...
   ```
 - If you need more replicas, then you can adjust those variables (default values are set to 2):
