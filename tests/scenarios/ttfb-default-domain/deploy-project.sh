@@ -13,6 +13,13 @@ declare -A CRON_INSTANCES=(
 
 DEFAULT_CONSUMERS=("email:email_transport:1")
 
+# TTFB probes against the default domain (DOMAIN_HOSTNAME_1 = www.example.com).
+declare -A TTFB_PROBES=(
+    ["Homepage"]="/"
+    ["Detail"]="/sample-product"
+    ["Category"]="/sample-category"
+)
+
 case "$1" in
     "generate") run_merge; run_generate ;;
     *) echo "Usage: $0 generate"; exit 1 ;;

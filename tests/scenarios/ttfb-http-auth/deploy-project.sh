@@ -17,6 +17,14 @@ DEFAULT_CONSUMERS=("email:email_transport:1")
 # targeting this domain must have HTTP_AUTH_CREDENTIALS embedded into the URL.
 FORCE_HTTP_AUTH_IN_PRODUCTION=(DOMAIN_HOSTNAME_2)
 
+# TTFB probes target the HTTP-auth-protected domain — HTTP_AUTH_CREDENTIALS
+# must be embedded into the probe URL (https://user:pass@host/...).
+TTFB_PROBES_DOMAIN=DOMAIN_HOSTNAME_2
+declare -A TTFB_PROBES=(
+    ["Homepage"]=""
+    ["Detail"]="/sample-product"
+)
+
 case "$1" in
     "generate") run_merge; run_generate ;;
     *) echo "Usage: $0 generate"; exit 1 ;;

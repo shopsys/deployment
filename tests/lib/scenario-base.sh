@@ -52,6 +52,7 @@ function run_generate() {
     source "${DEPLOY_TARGET_PATH}/parts/kubernetes-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/cron.sh"
     source "${DEPLOY_TARGET_PATH}/parts/autoscaling.sh"
+    source "${DEPLOY_TARGET_PATH}/parts/probes.sh"
 }
 
 function run_merge() {

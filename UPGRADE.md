@@ -10,6 +10,12 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.0.0 to v5.0.1
+
+- added support for TTFB monitoring via Prometheus Probe objects ([#70](https://github.com/shopsys/deployment/pull/70))
+    - in your `deploy-project.sh` add `source "${DEPLOY_TARGET_PATH}/parts/probes.sh"` right before the `source` of `deploy.sh` (which is always last)
+    - to enable probes, declare the `TTFB_PROBES` associative array in `deploy-project.sh` — see [README](README.md#enable-ttfb-monitoring-prometheus-probe) for configuration detail
+
 ## Upgrade from v4.6.1 to v5.0.0
 
 - remove files that are already part of project-base by default ([#66](https://github.com/shopsys/deployment/pull/66))

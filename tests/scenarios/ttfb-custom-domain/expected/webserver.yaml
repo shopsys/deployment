@@ -681,6 +681,69 @@ spec:
           defaultMode: 420
           secretName: fe-api-keys
 ---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: ttfb-category
+  namespace: myproject-prod
+spec:
+  interval: 60s
+  jobName: ttfb
+  module: http_ttfb
+  prober:
+    url: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  scrapeClass: ttfb
+  scrapeTimeout: 45s
+  targets:
+    staticConfig:
+      labels:
+        project: myproject
+        type: Category
+      static:
+      - https://www.example.com/cz/sample-category
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: ttfb-detail
+  namespace: myproject-prod
+spec:
+  interval: 60s
+  jobName: ttfb
+  module: http_ttfb
+  prober:
+    url: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  scrapeClass: ttfb
+  scrapeTimeout: 45s
+  targets:
+    staticConfig:
+      labels:
+        project: myproject
+        type: Detail
+      static:
+      - https://www.example.com/cz/sample-product
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: ttfb-homepage
+  namespace: myproject-prod
+spec:
+  interval: 60s
+  jobName: ttfb
+  module: http_ttfb
+  prober:
+    url: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  scrapeClass: ttfb
+  scrapeTimeout: 45s
+  targets:
+    staticConfig:
+      labels:
+        project: myproject
+        type: Homepage
+      static:
+      - https://www.example.com/cz
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

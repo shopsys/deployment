@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+    name: PLACEHOLDER
+spec:
+    jobName: ttfb
+    interval: 60s
+    scrapeTimeout: 45s
+    module: http_ttfb
+    scrapeClass: ttfb
+    prober:
+        url: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+    targets:
+        staticConfig:
+            static:
+                - PLACEHOLDER
+            labels:
+                project: PLACEHOLDER
+                type: PLACEHOLDER
