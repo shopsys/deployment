@@ -10,6 +10,25 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.0.0 to v5.1.0
+
+- health check for webserver now uses PHP-FPM `ping` endpoint instead of nginx `stub_status` ([#71](https://github.com/shopsys/deployment/pull/71))
+- update the `/health` location block in `project-nginx.conf` in your project's `app/orchestration/kubernetes/configmap/nginx.yaml` file to pass the request to PHP-FPM:
+    ```diff
+        location /health {
+    -       stub_status  on;
+            access_log   off;
+    +
+    +       include fastcgi_params;
+    +       fastcgi_read_timeout 3s;
+    +       fastcgi_param SCRIPT_FILENAME /ping;
+    +       fastcgi_param SCRIPT_NAME     /ping;
+    +       fastcgi_param REQUEST_METHOD  GET;
+    +
+    +       fastcgi_pass php-upstream;
+        }
+    ```
+
 ## Upgrade from v4.6.1 to v5.0.0
 
 - remove files that are already part of project-base by default ([#66](https://github.com/shopsys/deployment/pull/66))
