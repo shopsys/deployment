@@ -2,7 +2,6 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
     name: storefront
-    namespace: "{{PROJECT_NAME}}"
 spec:
     scaleTargetRef:
         apiVersion: apps/v1
