@@ -214,6 +214,11 @@ runCommand "FAILED" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=$
 echo -n "Clean storefront cache (queries and translations) "
 runCommand "FAILED" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing clean-redis-storefront"
 
+if kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing -l 2>/dev/null | grep -q "build-deploy-part-3-non-blocking"; then
+    echo -n "Run non-blocking post-deploy tasks "
+    runCommand "FAILED" "kubectl exec ${RUNNING_WEBSERVER_PHP_FPM_POD} --namespace=${PROJECT_NAME} -- ./phing build-deploy-part-3-non-blocking"
+fi
+
 if [ -z ${DISABLE_WEBSITE_RUNNING_CHECK} ]; then
     DISABLE_WEBSITE_RUNNING_CHECK=false
 fi

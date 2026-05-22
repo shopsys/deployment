@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.0.0 to v5.1.0
+
+- deploy script now automatically runs `build-deploy-part-3-non-blocking` Phing target after maintenance page is turned off, if available
+
 ## Upgrade from v4.6.1 to v5.0.0
 
 - remove files that are already part of project-base by default ([#66](https://github.com/shopsys/deployment/pull/66))
