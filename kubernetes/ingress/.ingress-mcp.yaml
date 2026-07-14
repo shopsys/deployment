@@ -1,0 +1,54 @@
+# Template of the ingress publishing the MCP server endpoints without HTTP basic auth,
+# rendered by deploy/parts/domains.sh for the first domain only, regardless of whether
+# basic auth is enabled (can be disabled with MCP_INGRESS_ENABLED=0).
+# The /_mcp path is protected by the application itself (Bearer token), the OAuth paths
+# are public by the OAuth specification.
+# There is no cert-manager annotation on purpose - the TLS certificate is reused from
+# the main ingress via the shared TLS secret.
+# The /.well-known/oauth-* paths use pathType ImplementationSpecific, because
+# ingress-nginx (>= 1.12) enables strict-validate-path-type by default, which rejects
+# dots in Exact/Prefix paths; ImplementationSpecific is matched as a literal prefix.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: eshop-mcp
+    annotations:
+        ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/proxy-body-size: 32m
+spec:
+    ingressClassName: nginx
+    tls:
+        -   hosts: ~
+            secretName: tls-certificate
+    rules:
+        -   host: ~
+            http:
+                paths:
+                -   backend:
+                        service:
+                            name: webserver-php-fpm
+                            port:
+                                number: 8080
+                    path: '/_mcp'
+                    pathType: Prefix
+                -   backend:
+                        service:
+                            name: webserver-php-fpm
+                            port:
+                                number: 8080
+                    path: '/mcp/oauth'
+                    pathType: Prefix
+                -   backend:
+                        service:
+                            name: webserver-php-fpm
+                            port:
+                                number: 8080
+                    path: '/.well-known/oauth-authorization-server'
+                    pathType: ImplementationSpecific
+                -   backend:
+                        service:
+                            name: webserver-php-fpm
+                            port:
+                                number: 8080
+                    path: '/.well-known/oauth-protected-resource'
+                    pathType: ImplementationSpecific
