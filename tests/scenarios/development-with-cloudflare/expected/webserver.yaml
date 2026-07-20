@@ -1,20 +1,18 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: myproject-production
+  name: myproject-cloudflare-dev
 ---
 apiVersion: v1
 data:
   domains_urls.yaml: |
     domains_urls:
       - id: 1
-        url: https://www.example.com
-      - id: 2
-        url: https://www.example.sk
+        url: https://dev.example.com
 kind: ConfigMap
 metadata:
-  name: domains-urls-m8t7497btf
-  namespace: myproject-production
+  name: domains-urls-5f46tgkghd
+  namespace: myproject-cloudflare-dev
 ---
 apiVersion: v1
 data:
@@ -230,7 +228,7 @@ data:
             proxy_set_header        Authorization "";
             proxy_buffering         off;
 
-            proxy_pass https://s3.example.com/myproject-production/web/$1/$image_id.$image_extension;
+            proxy_pass https://s3.example.com/myproject-cloudflare-dev/web/$1/$image_id.$image_extension;
         }
 
         location ~ ^/(content)/ {
@@ -241,7 +239,7 @@ data:
             proxy_set_header        Authorization "";
             proxy_buffering         off;
 
-            proxy_pass              https://s3.example.com/myproject-production/web$request_uri;
+            proxy_pass              https://s3.example.com/myproject-cloudflare-dev/web$request_uri;
         }
 
         # location for backend routes used by customers
@@ -317,7 +315,7 @@ data:
 kind: ConfigMap
 metadata:
   name: nginx-default-config
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 ---
 apiVersion: v1
 data:
@@ -347,7 +345,7 @@ data:
 kind: ConfigMap
 metadata:
   name: production-php-fpm
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 ---
 apiVersion: v1
 data:
@@ -365,13 +363,13 @@ data:
 kind: ConfigMap
 metadata:
   name: production-php-opcache
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: storefront
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   ports:
   - name: storefront
@@ -384,7 +382,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: webserver-php-fpm
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   ports:
   - name: http
@@ -397,7 +395,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: storefront
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   replicas: 1
   selector:
@@ -408,7 +406,7 @@ spec:
       annotations:
         logging/enabled: "false"
         project/app: storefront
-        project/environment: production
+        project/environment: cloudflare
         project/name: myproject
       labels:
         app: storefront
@@ -428,16 +426,12 @@ spec:
       containers:
       - env:
         - name: DOMAIN_HOSTNAME_1
-          value: https://www.example.com/
+          value: https://dev.example.com/
         - name: PUBLIC_GRAPHQL_ENDPOINT_HOSTNAME_1
-          value: https://www.example.com/graphql/
-        - name: DOMAIN_HOSTNAME_2
-          value: https://www.example.sk/
-        - name: PUBLIC_GRAPHQL_ENDPOINT_HOSTNAME_2
-          value: https://www.example.sk/graphql/
+          value: https://dev.example.com/graphql/
         - name: INTERNAL_ENDPOINT
           value: http://webserver-php-fpm:8080/
-        image: v1.0.0
+        image: dev-latest
         lifecycle:
           preStop:
             exec:
@@ -479,7 +473,7 @@ metadata:
   labels:
     app: webserver-php-fpm
   name: webserver-php-fpm
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   progressDeadlineSeconds: 1500
   replicas: 1
@@ -496,7 +490,7 @@ spec:
       annotations:
         logging/enabled: "true"
         project/app: app
-        project/environment: production
+        project/environment: cloudflare
         project/name: myproject
       labels:
         app: webserver-php-fpm
@@ -531,36 +525,36 @@ spec:
         - name: TRUSTED_PROXY
           value: 10.0.0.0/8
         - name: DATABASE_NAME
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: S3_ENDPOINT
           value: https://s3.example.com
         - name: MAILER_FORCE_WHITELIST
-          value: "false"
+          value: "true"
         - name: DATABASE_USER
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: DATABASE_PORT
           value: "5432"
         - name: MESSENGER_TRANSPORT_DSN
           value: amqp://guest:guest@rabbitmq:5672/%2f/messages
         - name: REDIS_PREFIX
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: DATABASE_PASSWORD
           value: test-db-password
         - name: DATABASE_HOST
           value: 10.0.0.100
         - name: ELASTIC_SEARCH_INDEX_PREFIX
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: S3_SECRET
           value: test-s3-secret
         - name: MAILER_DSN
           value: smtp://mailhog:1025
         - name: S3_BUCKET_NAME
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: S3_ACCESS_KEY
-          value: myproject-production
+          value: myproject-cloudflare-dev
         - name: APP_SECRET
           value: test-app-secret-key
-        image: v1.0.0
+        image: dev-latest
         imagePullPolicy: IfNotPresent
         lifecycle:
           postStart:
@@ -652,7 +646,7 @@ spec:
         - sh
         - -c
         - cp -r -n /var/www/html/. /tmp/source-codes
-        image: v1.0.0
+        image: dev-latest
         name: copy-source-codes-to-volume
         volumeMounts:
         - mountPath: /tmp/source-codes
@@ -665,7 +659,7 @@ spec:
       - emptyDir: {}
         name: source-codes
       - configMap:
-          name: domains-urls-m8t7497btf
+          name: domains-urls-5f46tgkghd
         name: domains-urls
       - configMap:
           name: nginx-default-config
@@ -687,16 +681,22 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-realm: Authentication Required - ok
+    nginx.ingress.kubernetes.io/auth-secret: http-auth
+    nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
-      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
-      308 https://www.$domain$request_uri; }
+      308 https://$host$request_uri; } if ($host ~ ^www\.(?<domain>.+)$) { return
+      308 https://$domain$request_uri; }
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    nginx.ingress.kubernetes.io/satisfy: any
+    nginx.ingress.kubernetes.io/server-snippet: real_ip_header CF-Connecting-IP;
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8,192.168.0.0/16
   name: eshop-domain-0
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   ingressClassName: nginx
   rules:
-  - host: www.example.com
+  - host: dev.example.com
     http:
       paths:
       - backend:
@@ -706,44 +706,12 @@ spec:
               number: 8080
         path: /
         pathType: Prefix
-  - host: example.com
+  - host: www.dev.example.com
   tls:
   - hosts:
-    - www.example.com
-    - example.com
-    secretName: tls-www-example-com
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: if ($scheme = http) { return
-      308 https://$host$request_uri; } if ($host ~ ^(?!www\.)(?<domain>.+)$) { return
-      308 https://www.$domain$request_uri; }
-    nginx.ingress.kubernetes.io/proxy-body-size: 32m
-  name: eshop-domain-1
-  namespace: myproject-production
-spec:
-  ingressClassName: nginx
-  rules:
-  - host: www.example.sk
-    http:
-      paths:
-      - backend:
-          service:
-            name: webserver-php-fpm
-            port:
-              number: 8080
-        path: /
-        pathType: Prefix
-  - host: example.sk
-  tls:
-  - hosts:
-    - www.example.sk
-    - example.sk
-    secretName: tls-www-example-sk
+    - dev.example.com
+    - www.dev.example.com
+    secretName: tls-dev-example-com
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -752,11 +720,11 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
   name: eshop-mcp
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   ingressClassName: nginx
   rules:
-  - host: www.example.com
+  - host: dev.example.com
     http:
       paths:
       - backend:
@@ -789,8 +757,8 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - www.example.com
-    secretName: tls-www-example-com
+    - dev.example.com
+    secretName: tls-dev-example-com
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -801,11 +769,11 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
     nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8
   name: rabbitmq-domain
-  namespace: myproject-production
+  namespace: myproject-cloudflare-dev
 spec:
   ingressClassName: nginx
   rules:
-  - host: rabbitmq.www.example.com
+  - host: rabbitmq.dev.example.com
     http:
       paths:
       - backend:
@@ -817,5 +785,5 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - rabbitmq.www.example.com
+    - rabbitmq.dev.example.com
     secretName: tls-certificate

@@ -10,6 +10,13 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.1.0 to v5.2.0
+
+- the MCP server endpoints (`/_mcp`, `/mcp/oauth`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`) are now published through a separate `eshop-mcp` ingress without HTTP basic auth, so external MCP clients (e.g. Claude Code) can authenticate with their own Bearer token
+  - the ingress is created for the first domain only and is rendered from the new `kubernetes/ingress/.ingress-mcp.yaml` template (can be overridden in `orchestration/kubernetes/ingress/` as usual)
+  - set `MCP_INGRESS_ENABLED=0` to disable the ingress completely
+  - be aware that the MCP paths are no longer covered by HTTP basic auth on non-production environments - they are protected by the application itself (Bearer token) or are public by the OAuth specification
+
 ## Upgrade from v5.0.0 to v5.1.0
 
 - deploy script now automatically runs `build-deploy-part-3-non-blocking` Phing target after maintenance page is turned off, if available

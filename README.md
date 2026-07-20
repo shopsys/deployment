@@ -109,6 +109,7 @@ If you want to define your custom variables see [Define custom variables](#defin
 | RABBITMQ_DEFAULT_PASS        | *******                          | Password for the default RabbitMQ user                                                                                      |              All |
 | RABBITMQ_IP_WHITELIST        | 123.456.123.422, 423.534.223.234 | IP Addresses (separated by comma) for which is the RabbitMQ Management accessible                                           |              All |
 | USING_CLOUDFLARE             | _1_ OR _0_                       | Set to 1 if your site is using Cloudflare (enables IP whitelisting)                                                         | production/devel |
+| MCP_INGRESS_ENABLED          | _1_ OR _0_                       | Set to 0 to disable the separate ingress publishing the MCP endpoints without HTTP basic auth (default: 1)                  | production/devel |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
