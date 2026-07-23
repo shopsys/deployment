@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.2.0 to v5.3.0
+
+- set `MCP_IP_WHITELIST` to a comma-separated list of VPN egress IP addresses or CIDR ranges to restrict access to the MCP ingress; an empty value preserves the current publicly reachable MCP ingress
+
 ## Upgrade from v5.1.0 to v5.2.0
 
 - the MCP server endpoints (`/_mcp`, `/mcp/oauth`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`) are now published through a separate `eshop-mcp` ingress without HTTP basic auth, so external MCP clients (e.g. Claude Code) can authenticate with their own Bearer token

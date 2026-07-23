@@ -22,6 +22,10 @@ USING_CLOUDFLARE=${USING_CLOUDFLARE:-0}
 # Global switch to disable publishing of the MCP ingress without HTTP basic auth (default: enabled)
 MCP_INGRESS_ENABLED=${MCP_INGRESS_ENABLED:-1}
 
+# IP ranges allowed to access the MCP ingress, typically VPN egress ranges.
+# An empty value keeps the MCP ingress publicly reachable as before.
+MCP_IP_WHITELIST=$(echo "${MCP_IP_WHITELIST:-}" | tr -d ' ' | sed 's/,\+/,/g;s/^,//;s/,$//')
+
 # Domains to exclude from Cloudflare IP whitelisting
 if [ -z "${CLOUDFLARE_EXCLUDED_DOMAINS}" ]; then
   CLOUDFLARE_EXCLUDED_DOMAINS=()
@@ -213,8 +217,18 @@ done
 # - server-scoped nginx settings of the main ingress (e.g. the Cloudflare
 #   real_ip_header server-snippet) apply to the MCP locations automatically, because
 #   ingress-nginx merges all ingresses of the same hostname into a single server block.
+function configure_mcp_ingress() {
+    local TARGET_FILEPATH="${1}"
+
+    if [ -n "${MCP_IP_WHITELIST}" ]; then
+        MCP_IP_WHITELIST="${MCP_IP_WHITELIST}" yq e -i '
+          .metadata.annotations."nginx.ingress.kubernetes.io/whitelist-source-range" = strenv(MCP_IP_WHITELIST)
+        ' "${TARGET_FILEPATH}"
+    fi
+}
+
 if [ "${MCP_INGRESS_ENABLED}" = "1" ]; then
-    render_ingress ".ingress-mcp.yaml" "ingress-mcp.yaml" "eshop-mcp" 0
+    render_ingress ".ingress-mcp.yaml" "ingress-mcp.yaml" "eshop-mcp" 0 configure_mcp_ingress
 fi
 
 echo -e "[${GREEN}OK${NO_COLOR}]"
