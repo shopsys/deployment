@@ -13,6 +13,12 @@ fi
 
 VARS+=(REDIS_VERSION)
 
+if [ -z ${GOTENBERG_VERSION} ]; then
+  GOTENBERG_VERSION='gotenberg/gotenberg:8'
+fi
+
+VARS+=(GOTENBERG_VERSION)
+
 if [ -z ${ADMIN_URL} ]; then
   ADMIN_URL='admin'
 fi
