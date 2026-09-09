@@ -10,6 +10,11 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.3.0 to v5.4.0
+
+- added Gotenberg service for gift voucher PDF rendering ([#83](https://github.com/shopsys/deployment/pull/83))
+  - if you override the `continuous-deploy`, `first-deploy` or `first-deploy-with-demo-data` kustomizations in your project, add the `gotenberg` deployment and service references to them manually
+
 ## Upgrade from v5.2.0 to v5.3.0
 
 - set `MCP_IP_WHITELIST` to a comma-separated list of VPN egress IP addresses or CIDR ranges to restrict access to the MCP ingress; an empty value preserves the current publicly reachable MCP ingress
