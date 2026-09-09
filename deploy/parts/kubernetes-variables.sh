@@ -7,13 +7,13 @@ assertVariable "CONFIGURATION_TARGET_PATH"
 assertVariable "S3_ENDPOINT"
 assertVariable "PROJECT_NAME"
 
-if [ -z ${REDIS_VERSION} ]; then
+if [ -z "${REDIS_VERSION}" ]; then
   REDIS_VERSION='redis:7.4-alpine'
 fi
 
 VARS+=(REDIS_VERSION)
 
-if [ -z ${GOTENBERG_VERSION} ]; then
+if [ -z "${GOTENBERG_VERSION}" ]; then
   GOTENBERG_VERSION='gotenberg/gotenberg:8'
 fi
 
