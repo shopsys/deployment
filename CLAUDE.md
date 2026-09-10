@@ -50,10 +50,12 @@ DISPLAY_FINAL_CONFIGURATION=1 ./deploy/deploy-project.sh deploy
      - `environment-variables.sh`: Environment variable management
      - `deploy.sh`: Core deployment logic
      - `cron.sh`: Cron job configuration
-     - `autoscaling.sh`: Horizontal pod autoscaling
+     - `consumers.sh`: Consumer deployments and autoscalers from `deploy/consumers.yaml`
+     - `autoscaling.sh`: Horizontal pod autoscaling of php-fpm and storefront
 
 2. **Kubernetes Manifests** (`kubernetes/`)
    - `deployments/`: Application deployments (webserver, php-fpm, redis, rabbitmq, cron)
+   - `manifest-templates/`: Templates for generated manifests (consumer deployments and their autoscalers)
    - `configmap/`: Configuration files for services
    - `services/`: Kubernetes service definitions
    - `kustomize/`: Kustomization overlays for different deployment scenarios
