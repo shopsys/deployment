@@ -101,19 +101,29 @@ else
     fi
 fi
 
-if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
-    echo -n "    Show configuration "
-    runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\""
+# The configuration is built into a file first, so that a broken configuration fails before the stale autoscalers are deleted and the file is applied
+MIGRATE_APPLICATION_MANIFEST_PATH="${BASE_PATH}/var/migrate-application.yaml"
 
+echo -n "    Build configuration "
+runCommand "ERROR" "build_kustomization \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" \"${MIGRATE_APPLICATION_MANIFEST_PATH}\""
+
+if [ $DISPLAY_FINAL_CONFIGURATION -eq "1" ]; then
     echo ""
     echo -e "section_start:`date +%s`:migrate_application_section\r\e[0K Configuration"
-    echo "${LAST_COMMAND_OUTPUT}"
+    cat "${MIGRATE_APPLICATION_MANIFEST_PATH}"
     echo -e "section_end:`date +%s`:migrate_application_section\r\e[0K"
     echo ""
 fi
 
+# kubectl apply does not prune, the autoscalers of consumers no longer autoscaled would stay in the namespace.
+# Only projects declaring consumers in consumers.yaml are cleaned up, the cleanup needs list and delete permissions on horizontalpodautoscalers
+if [ -f "${BASE_PATH}/deploy/consumers.yaml" ]; then
+    echo -n "    Delete Horizontal pod autoscalers of consumers no longer autoscaled "
+    runCommand "ERROR" "delete_stale_consumer_hpas \"${MIGRATE_APPLICATION_MANIFEST_PATH}\""
+fi
+
 echo -n "    Apply configuration "
-runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" | kubectl apply -f -"
+runCommand "ERROR" "kubectl apply -f \"${MIGRATE_APPLICATION_MANIFEST_PATH}\""
 
 echo -n "    Waiting for migrate application "
 

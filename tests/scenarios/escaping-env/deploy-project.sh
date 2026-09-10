@@ -22,5 +22,6 @@ STOREFRONT_ENVIRONMENT_VARIABLES["SENTRY_RELEASE"]="${SENTRY_RELEASE}"
 case "$1" in
     "merge") run_merge ;;
     "generate") run_generate ;;
-    *) echo "Usage: $0 merge|generate"; exit 1 ;;
+    "deploy") run_generate; run_deploy ;;
+    *) echo "Usage: $0 merge|generate|deploy"; exit 1 ;;
 esac

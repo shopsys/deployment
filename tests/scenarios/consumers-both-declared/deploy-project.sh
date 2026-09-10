@@ -21,5 +21,6 @@ function merge() {
 case "$1" in
     "merge") merge ;;
     "generate") run_generate ;;
-    *) echo "Usage: $0 merge|generate"; exit 1 ;;
+    "deploy") run_generate; run_deploy ;;
+    *) echo "Usage: $0 merge|generate|deploy"; exit 1 ;;
 esac

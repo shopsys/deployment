@@ -220,8 +220,12 @@ Set `ENABLE_CONSUMER_AUTOSCALING=true` as an environment variable of the environ
 - enabled: an autoscaler is deployed for every consumer with an `autoscaling` block and `replicas` is omitted from its deployment, so the autoscaler owns the replicas count
 - disabled: consumers run with the static `replicas`, so the variable works as a kill switch
 
-Existing autoscalers are updated in place by the deploy.
-A renamed consumer leaves its old deployment `consumer-<old name>` behind (kubectl apply does not prune), delete it manually (this applies to `DEFAULT_CONSUMERS` as well).
+Existing autoscalers are updated in place by the deploy. An autoscaler of a consumer that lost its `autoscaling` block, was renamed
+or whose environment disabled the flag is deleted after the successful build of the migrate-application configuration and right before its apply
+(kubectl apply does not prune), a deploy failing earlier never touches them. The cleanup needs `list` and `delete` permissions
+on `horizontalpodautoscalers` in the namespace for the deploy account and runs only for projects with `consumers.yaml`.
+A renamed consumer leaves its old deployment `consumer-<old name>` behind for the same reason, delete it manually (this applies to `DEFAULT_CONSUMERS` as well),
+and so do the autoscalers of a project that removes `consumers.yaml` altogether.
 
 > [!NOTE]
 > The first deploy of a consumer with an autoscaler (after enabling the flag or after adding its `autoscaling` block) resets it to 1 replica for a moment: removing `replicas` from a deployment
@@ -233,6 +237,7 @@ with a threshold of `500` and 2000 ready messages the autoscaler runs 4 pods, wi
 Scale-up is immediate, scale-down starts after 5 minutes of stabilization and removes at most 1 pod per 2 minutes.
 
 The scaling behavior and the metric name live in `kubernetes/manifest-templates/consumer-hpa.template.yaml` and can be overridden in `orchestration/kubernetes/manifest-templates/` as any other manifest.
+Keep the label `consumer-autoscaling: "true"` in an overridden template, the deploy recognizes the autoscalers it manages (and deletes the stale ones) by it.
 
 ### Add more or less domains
 
