@@ -10,6 +10,21 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.4.0 to v5.5.0
+
+- consumers can be declared in `deploy/consumers.yaml` and autoscaled by RabbitMQ queue backlog, see [Consumers](README.md#consumers)
+  - to use it, source the new part in the `deploy()` function of `deploy-project.sh` (before `environment-variables.sh`, the part fails the deploy otherwise) and move the consumer declaration from `DEFAULT_CONSUMERS` to the file:
+    ```diff
+        source "${DEPLOY_TARGET_PATH}/parts/domain-rabbitmq-management.sh"
+    +   source "${DEPLOY_TARGET_PATH}/parts/consumers.sh"
+        source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
+    ```
+  - `DEFAULT_CONSUMERS` keeps working unchanged, nothing changes for projects that do not adopt the file; a project using both fails the deploy
+  - the deploy account of a project adopting the file needs `list` and `delete` permissions on `horizontalpodautoscalers` in the project namespace (autoscalers of consumers no longer autoscaled are deleted by the deploy)
+  - `autoscaling.minReplicas: 0` scales a consumer to zero pods while its queues are empty; it needs the `HPAScaleToZero` feature gate on the cluster, ask your cluster administrator
+  - the autoscaling is disabled by default, enable it per environment with `ENABLE_CONSUMER_AUTOSCALING=true`; the first deploy after enabling it briefly resets the autoscaled consumers to 1 replica, see [Enable consumer autoscaling](README.md#enable-consumer-autoscaling)
+  - if you override `deploy/parts/deploy.sh` in your project, apply the change from the pull request manually (the migrate-application kustomization is built into a file first, then autoscalers of consumers that are no longer autoscaled are deleted and the built file is applied)
+
 ## Upgrade from v5.3.0 to v5.4.0
 
 - added Gotenberg service for gift voucher PDF rendering ([#83](https://github.com/shopsys/deployment/pull/83))
