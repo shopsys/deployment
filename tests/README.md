@@ -20,6 +20,11 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd)":/workspace -w /workspace 
   shopsys/kubernetes-buildpack:2.0 \
 ./tests/run-tests.sh --update
 
+# Run only the deploy tests (deploy.sh with mocked kubectl)
+docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd)":/workspace -w /workspace \
+  shopsys/kubernetes-buildpack:2.0 \
+./tests/run-tests.sh deploy
+
 # List available scenarios
 docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd)":/workspace -w /workspace \
   shopsys/kubernetes-buildpack:2.0 \
@@ -45,7 +50,8 @@ tests/
 ├── fixtures/                 # Shared project-level overrides copied to tmp test project
 ├── lib/
 │   ├── test-helpers.sh       # Helper functions
-│   └── default-env.sh        # Shared default environment variables
+│   ├── default-env.sh        # Shared default environment variables
+│   └── mock/                 # kubectl and sleep mocks for the deploy tests
 └── scenarios/
     └── {scenario-name}/
         ├── deploy-project.sh # Scenario configuration (required)
@@ -78,6 +84,18 @@ tests/
    (every consumer has environment variables, replicas are owned either by the deployment or by its autoscaler,
    every autoscaler targets a generated deployment and watches at least one queue)
 6. Compares with expected files
+
+## Deploy tests
+
+`./tests/run-tests.sh deploy` (also part of the full run) runs the real `deploy/parts/deploy.sh` of a scenario (`deploy-project.sh deploy`,
+which sources the manifest-generating parts and then `deploy.sh` in one process, like the `deploy()` function of a project)
+with `kubectl` and `sleep` replaced by the mocks in `lib/mock/`. The mocked kubectl logs every call and answers `get hpa`
+with the autoscaler names given by the test case, everything else succeeds. The cases check the migrate-application step:
+the configuration is built before the stale consumer autoscalers are deleted and applied afterwards, a configuration failing to build
+deletes no autoscaler and applies nothing, projects without `consumers.yaml` never list or delete autoscalers, disabling `ENABLE_CONSUMER_AUTOSCALING`
+deletes all consumer autoscalers, and autoscalers are matched
+by their name in the built manifest (a project template may name them differently). Hooks in the cases override a template
+in `orchestration/` before the merge phase or break a kustomization between the phases.
 
 The expected files only prove that the output is deterministic, not that it is correct: `--update` records whatever was generated.
 Read the diff of the expected files after `--update` as a code review, and when a new scenario is added, compare its output

@@ -1,0 +1,19 @@
+#!/bin/bash
+# Mock of kubectl for the deploy tests (tests/run-tests.sh deploy): logs every invocation to KUBECTL_LOG (one per line),
+# answers "get hpa" with the names in MOCK_DEPLOYED_HPAS (space-separated) and succeeds silently otherwise
+echo "$*" >> "${KUBECTL_LOG}"
+
+case "$1 $2" in
+    "get hpa")
+        for NAME in ${MOCK_DEPLOYED_HPAS}; do
+            echo "horizontalpodautoscaler.autoscaling/${NAME}"
+        done
+        ;;
+esac
+
+# consume the manifest piped into "kubectl apply -f -", so that the kustomize build in front of the pipe is not killed by SIGPIPE
+case " $* " in
+    *" -f - "*) cat > /dev/null ;;
+esac
+
+exit 0

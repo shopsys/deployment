@@ -151,6 +151,29 @@ function create_consumer_hpa_manifest() {
     add_migrate_application_resource "../../../autoscaling/consumer-${NAME}.yaml"
 }
 
+# Builds a kustomization into a file: runCommand appends 2>&1 to its command, so a redirect written inline would send the kustomize error into the file
+function build_kustomization() {
+    local KUSTOMIZE_PATH="$1"
+    local OUTPUT_PATH="$2"
+
+    kustomize build --load-restrictor LoadRestrictionsNone "${KUSTOMIZE_PATH}" > "${OUTPUT_PATH}"
+}
+
+# Deletes the consumer autoscalers (label consumer-autoscaling=true) deployed in the namespace that are not in the built manifest (first argument).
+function delete_stale_consumer_hpas() {
+    local MANIFEST_PATH="$1"
+    local WANTED_HPAS DEPLOYED_HPAS DEPLOYED_HPA
+
+    WANTED_HPAS=$(yq e -N 'select(.kind == "HorizontalPodAutoscaler" and .metadata.labels["consumer-autoscaling"] == "true") | .metadata.name' "${MANIFEST_PATH}") || return 1
+    DEPLOYED_HPAS=$(kubectl get hpa -l consumer-autoscaling=true --namespace="${PROJECT_NAME}" -o name) || return 1
+
+    for DEPLOYED_HPA in ${DEPLOYED_HPAS}; do
+        if ! grep -Fqx -- "${DEPLOYED_HPA##*/}" <<< "${WANTED_HPAS}"; then
+            kubectl delete "${DEPLOYED_HPA}" --namespace="${PROJECT_NAME}" || return 1
+        fi
+    done
+}
+
 # Install package for slack notification
 if [ -n "${SLACK_CHANNEL}" ]; then
     pip install requests
