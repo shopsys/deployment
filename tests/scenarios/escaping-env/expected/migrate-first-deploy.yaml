@@ -60,6 +60,21 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app: gotenberg
+  name: gotenberg
+  namespace: myproject-production
+spec:
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+  selector:
+    app: gotenberg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
     app: rabbitmq
     prometheus-exporter: "true"
   name: rabbitmq
@@ -216,6 +231,52 @@ spec:
         secret:
           defaultMode: 420
           secretName: fe-api-keys
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gotenberg
+  namespace: myproject-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gotenberg
+  template:
+    metadata:
+      annotations:
+        logging/enabled: "false"
+        project/app: gotenberg
+        project/environment: production
+        project/name: myproject
+      labels:
+        app: gotenberg
+    spec:
+      containers:
+      - image: gotenberg/gotenberg:8
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        name: gotenberg
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 50m
+            memory: 512Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
