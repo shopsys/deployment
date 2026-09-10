@@ -121,6 +121,36 @@ function add_migrate_application_resource() {
     done
 }
 
+function create_consumer_hpa_manifest() {
+    local NAME="$1"
+    local MIN_REPLICAS="$2"
+    local MAX_REPLICAS="$3"
+    local SCALE_THRESHOLD="$4"
+    local QUEUE_NAMES_LIST="$5"
+
+    local TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer-hpa.template.yaml"
+    local CONSUMER_HPA_MANIFEST_PATH="${CONFIGURATION_TARGET_PATH}/autoscaling/consumer-${NAME}.yaml"
+
+    mkdir -p "${CONFIGURATION_TARGET_PATH}/autoscaling"
+    cp "${TEMPLATE_PATH}" "${CONSUMER_HPA_MANIFEST_PATH}"
+
+    local QUEUE_NAMES="" QUEUE_NAME
+    for QUEUE_NAME in ${QUEUE_NAMES_LIST}; do
+        if [ -n "${QUEUE_NAMES}" ]; then
+            QUEUE_NAMES="${QUEUE_NAMES}, "
+        fi
+        QUEUE_NAMES="${QUEUE_NAMES}\"${QUEUE_NAME}\""
+    done
+
+    sed -i "s|{{NAME}}|${NAME}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{MIN_REPLICAS}}|${MIN_REPLICAS}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{MAX_REPLICAS}}|${MAX_REPLICAS}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{SCALE_THRESHOLD}}|${SCALE_THRESHOLD}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{QUEUE_NAMES}}|${QUEUE_NAMES}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+
+    add_migrate_application_resource "../../../autoscaling/consumer-${NAME}.yaml"
+}
+
 # Install package for slack notification
 if [ -n "${SLACK_CHANNEL}" ]; then
     pip install requests
