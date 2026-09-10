@@ -18,6 +18,7 @@ declare -A CRON_INSTANCES=(
 DEFAULT_CONSUMERS=()
 
 case "$1" in
-    "generate") run_merge; run_generate ;;
-    *) echo "Usage: $0 generate"; exit 1 ;;
+    "merge") run_merge ;;
+    "generate") run_generate ;;
+    *) echo "Usage: $0 merge|generate"; exit 1 ;;
 esac

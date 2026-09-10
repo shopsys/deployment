@@ -150,6 +150,18 @@ setup_test_environment() {
     echo "$test_tmp"
 }
 
+# Build one kustomization into the output file, fail (with the kustomize error on stderr) when the build fails
+build_output() {
+    local kustomize_path="$1"
+    local output_file="$2"
+
+    if ! build_kustomize "$kustomize_path" "$output_file"; then
+        print_error "kustomize build failed for $(basename "$output_file"):" >&2
+        head -n 5 "$output_file" >&2
+        return 1
+    fi
+}
+
 # Build kustomize outputs
 build_outputs() {
     local test_tmp="$1"
@@ -161,20 +173,20 @@ build_outputs() {
 
     # Build webserver kustomize output
     if [ -d "${config_path}/kustomize/webserver" ]; then
-        build_kustomize "${config_path}/kustomize/webserver" "${output_dir}/webserver.yaml" || true
+        build_output "${config_path}/kustomize/webserver" "${output_dir}/webserver.yaml" || return 1
     fi
 
     # Build migrate-application outputs for each type
     for deploy_type in continuous-deploy first-deploy first-deploy-with-demo-data; do
         if [ -d "${config_path}/kustomize/migrate-application/${deploy_type}" ]; then
-            build_kustomize "${config_path}/kustomize/migrate-application/${deploy_type}" \
-                "${output_dir}/migrate-${deploy_type}.yaml" || true
+            build_output "${config_path}/kustomize/migrate-application/${deploy_type}" \
+                "${output_dir}/migrate-${deploy_type}.yaml" || return 1
         fi
     done
 
     # Build cron kustomize output
     if [ -d "${config_path}/kustomize/cron" ]; then
-        build_kustomize "${config_path}/kustomize/cron" "${output_dir}/cron.yaml" || true
+        build_output "${config_path}/kustomize/cron" "${output_dir}/cron.yaml" || return 1
     fi
 
     # Copy individual files that aren't built by kustomize
@@ -185,39 +197,12 @@ build_outputs() {
     echo "$output_dir"
 }
 
-# Run a single test scenario
-run_scenario() {
-    local scenario_name="$1"
-    local scenario_dir="${SCENARIOS_DIR}/${scenario_name}"
+# Run the given phases of the scenario's deploy-project.sh, each in its own process
+run_scenario_phases() {
+    local scenario_dir="$1"
+    local test_tmp="$2"
+    shift 2
 
-    print_scenario_header "$scenario_name"
-
-    # Validate scenario exists
-    if [ ! -d "$scenario_dir" ]; then
-        print_error "Scenario not found: $scenario_name"
-        return 1
-    fi
-
-    if [ ! -f "${scenario_dir}/deploy-project.sh" ]; then
-        print_error "Missing deploy-project.sh in scenario: $scenario_name"
-        return 1
-    fi
-
-    # Get domain count from env.sh
-    local domain_count=1
-    if [ -f "${scenario_dir}/env.sh" ]; then
-        domain_count=$(source "${scenario_dir}/env.sh" && echo "${DOMAIN_COUNT:-1}")
-    fi
-
-    # Set up test environment
-    print_info "Setting up test environment..."
-    local test_tmp
-    test_tmp=$(setup_test_environment "$scenario_name" "$domain_count")
-
-    # Generate manifests using scenario's deploy-project.sh
-    print_info "Generating manifests using deploy-project.sh..."
-
-    # Export environment variables and run deploy-project.sh
     (
         # Source default environment variables
         source "${SCRIPT_DIR}/lib/default-env.sh"
@@ -239,14 +224,97 @@ run_scenario() {
         # Change to BASE_PATH - required for relative paths in kubernetes-variables.sh
         cd "${BASE_PATH}"
 
-        # Run the scenario's deploy-project.sh
-        bash "${scenario_dir}/deploy-project.sh" generate
+        # One process per phase as in a real project, where "merge" runs in the image build and "deploy" in the CI job,
+        # so nothing defined by the merge phase (e.g. DEFAULT_CONSUMERS) leaks into the following phase.
+        # bash -e: the -e of the shebang is ignored by "bash script"
+        local phase
+        for phase in "$@"; do
+            bash -e "${scenario_dir}/deploy-project.sh" "$phase" || exit $?
+        done
     )
+}
+
+# Run the merge and the generate phase of the scenario's deploy-project.sh
+run_deploy_project() {
+    run_scenario_phases "$1" "$2" merge generate
+}
+
+# Run a single test scenario
+run_scenario() {
+    local scenario_name="$1"
+    local scenario_dir="${SCENARIOS_DIR}/${scenario_name}"
+
+    print_scenario_header "$scenario_name"
+
+    # Validate scenario exists
+    if [ ! -d "$scenario_dir" ]; then
+        print_error "Scenario not found: $scenario_name"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+
+    if [ ! -f "${scenario_dir}/deploy-project.sh" ]; then
+        print_error "Missing deploy-project.sh in scenario: $scenario_name"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+
+    # Get domain count from env.sh
+    local domain_count=1
+    if [ -f "${scenario_dir}/env.sh" ]; then
+        domain_count=$(source "${scenario_dir}/env.sh" && echo "${DOMAIN_COUNT:-1}")
+    fi
+
+    # Set up test environment
+    print_info "Setting up test environment..."
+    local test_tmp
+    test_tmp=$(setup_test_environment "$scenario_name" "$domain_count")
+
+    # Generate manifests using scenario's deploy-project.sh
+    print_info "Generating manifests using deploy-project.sh..."
+
+    # A scenario with expected-error.txt must fail during the generation with every line of the file in its output
+    if [ -f "${scenario_dir}/expected-error.txt" ]; then
+        local expected_error generation_output
+
+        if generation_output=$(run_deploy_project "$scenario_dir" "$test_tmp" 2>&1); then
+            print_error "${scenario_name}: generation succeeded, expected failure with: $(head -n 1 "${scenario_dir}/expected-error.txt")"
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+        else
+            while IFS= read -r expected_error || [ -n "$expected_error" ]; do
+                if echo "$generation_output" | grep -qF -- "$expected_error"; then
+                    print_success "${scenario_name}: generation failed with: ${expected_error}"
+                    TESTS_PASSED=$((TESTS_PASSED + 1))
+                else
+                    print_error "${scenario_name}: generation failed, but without the expected text: ${expected_error}"
+                    echo ""
+                    echo "$generation_output" | tail -n 20
+                    echo ""
+                    TESTS_FAILED=$((TESTS_FAILED + 1))
+                fi
+            done < "${scenario_dir}/expected-error.txt"
+        fi
+
+        cleanup_test_env "$test_tmp"
+        return 0
+    fi
+
+    run_deploy_project "$scenario_dir" "$test_tmp" || {
+        print_error "Manifest generation failed for scenario: $scenario_name (expected files not updated)"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        cleanup_test_env "$test_tmp"
+        return 1
+    }
 
     # Build kustomize outputs
     print_info "Building kustomize outputs..."
     local output_dir
-    output_dir=$(build_outputs "$test_tmp")
+    if ! output_dir=$(build_outputs "$test_tmp"); then
+        print_error "Kustomize build failed for scenario: $scenario_name (expected files not updated)"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        cleanup_test_env "$test_tmp"
+        return 1
+    fi
 
     # Update mode: copy generated to expected
     if [ "${UPDATE_MODE}" = "1" ]; then
@@ -264,6 +332,8 @@ run_scenario() {
 
     if [ ! -d "$expected_dir" ]; then
         print_warning "No expected directory found. Run with --update to create."
+        TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
+        cleanup_test_env "$test_tmp"
         return 2
     fi
 
@@ -287,7 +357,7 @@ main() {
 
     if [ -n "$SPECIFIC_SCENARIO" ]; then
         # Run specific scenario
-        run_scenario "$SPECIFIC_SCENARIO"
+        run_scenario "$SPECIFIC_SCENARIO" || true
     else
         # Run all scenarios
         for scenario_dir in "${SCENARIOS_DIR}"/*/; do

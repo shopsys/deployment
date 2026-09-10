@@ -109,13 +109,10 @@ build_kustomize() {
     local output_file="$2"
 
     if command -v kustomize &> /dev/null; then
-        # Try newer syntax first, fall back to older underscore syntax
-        kustomize build --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1 || \
-        kustomize build --load_restrictor none "$kustomize_path" > "$output_file" 2>&1
+        kustomize build --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1
     else
         # Fallback to kubectl kustomize
-        kubectl kustomize --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1 || \
-        kubectl kustomize --load_restrictor none "$kustomize_path" > "$output_file" 2>&1
+        kubectl kustomize --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1
     fi
 }
 

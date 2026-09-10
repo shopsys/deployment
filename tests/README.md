@@ -50,6 +50,7 @@ tests/
     └── {scenario-name}/
         ├── deploy-project.sh # Scenario configuration (required)
         ├── env.sh            # Environment overrides (optional)
+        ├── expected-error.txt # Optional: the scenario must fail during generation with every line of this file in its output (no expected/ then)
         └── expected/         # Expected output files
 ```
 
@@ -58,6 +59,7 @@ tests/
 1. Copy an existing scenario directory
 2. Modify `env.sh` with scenario-specific variables (PROJECT_NAME, DOMAIN_HOSTNAME_*, etc.)
 3. Modify `deploy-project.sh` for scenario-specific configuration (DOMAINS, CRON_INSTANCES, CONSUMERS, etc.)
+   - A scenario expecting a failure provides `expected-error.txt` instead of `expected/`, see `merge-phase-failure`
 4. Generate expected files: `./tests/run-tests.sh --update my-scenario`
 5. Verify: `./tests/run-tests.sh my-scenario`
 
@@ -65,8 +67,10 @@ tests/
 
 1. Creates mock project structure in `tests/tmp/{scenario}/`
 2. Loads `lib/default-env.sh`, then scenario's `env.sh`
-3. Runs scenario's `deploy-project.sh generate`
-4. Builds kustomize outputs
+3. Runs scenario's `deploy-project.sh merge` and `deploy-project.sh generate` as two separate `bash -e` processes, like the image build
+   and the CI job of a real project; a failure of either phase fails the scenario (a scenario with `expected-error.txt` ends here:
+   it passes when one of the phases fails with the expected text)
+4. Builds kustomize outputs (a failed build fails the scenario and prints the kustomize error)
 5. Compares with expected files
 
 `tests/fixtures/orchestration/kubernetes/configmap/nginx.yaml` is intentionally tracked because the deployment package no longer ships `kubernetes/configmap/nginx.yaml`, but test scenarios still need a project-level override to build webserver manifests.

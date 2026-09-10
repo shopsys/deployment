@@ -1,0 +1,1 @@
+A merge phase exiting with an error must fail the scenario even when the generate phase alone would succeed (guards the test runner)
