@@ -48,6 +48,7 @@ function run_generate() {
     source "${DEPLOY_TARGET_PATH}/functions.sh"
     source "${DEPLOY_TARGET_PATH}/parts/domains.sh"
     source "${DEPLOY_TARGET_PATH}/parts/domain-rabbitmq-management.sh"
+    source "${DEPLOY_TARGET_PATH}/parts/consumers.sh"
     source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/kubernetes-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/cron.sh"

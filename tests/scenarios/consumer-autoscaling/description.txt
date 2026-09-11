@@ -1,0 +1,1 @@
+Production deployment with consumers declared in deploy/consumers.yaml and consumer autoscaling enabled (static, autoscaled, multi-queue, custom queue name and scale-to-zero consumers)

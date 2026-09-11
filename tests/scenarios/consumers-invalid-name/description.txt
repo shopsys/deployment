@@ -1,0 +1,1 @@
+A consumer name with semicolons (the field separator of the parser) must be rejected instead of shifting the fields of another consumer

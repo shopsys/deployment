@@ -1,0 +1,9 @@
+Consumer 'email': replicas must be a non-negative integer, got '1;garbage'
+Consumer 'order': autoscaling.threshold must be a positive integer of ready messages per pod, got '500;other_queue'
+Consumer 'export': transports must be a non-empty list
+Consumer 'export': replicas must be a non-negative integer, got '-1'
+Consumer 'export': autoscaling.minReplicas must be a non-negative integer (0 needs the HPAScaleToZero feature gate on the cluster), got '-1'
+Consumer 'export': autoscaling.maxReplicas (-1) must be greater than autoscaling.minReplicas (-1)
+Consumer 'export': autoscaling.threshold must be a positive integer of ready messages per pod, got '0'
+Consumer 'export': autoscaling.queues must be a non-empty list (or omitted to use transports)
+Consumer 'idle': autoscaling must be a map with minReplicas, maxReplicas, threshold and optional queues, got 'true'

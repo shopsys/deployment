@@ -1,0 +1,12 @@
+consumers:
+    # Two consumers of the same name would overwrite each other's deployment manifest and register it twice in the kustomizations,
+    # which fails only in kustomize build in the middle of the deploy (after the crons are locked)
+    -   name: email
+        transports: [email_transport]
+        replicas: 1
+    -   name: export
+        transports: [export_transport]
+        replicas: 2
+    -   name: email
+        transports: [email_transport]
+        replicas: 3

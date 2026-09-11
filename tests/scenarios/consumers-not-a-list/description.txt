@@ -1,0 +1,1 @@
+A map instead of a list under the consumers key of deploy/consumers.yaml must be rejected with a readable message

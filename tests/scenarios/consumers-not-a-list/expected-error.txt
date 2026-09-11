@@ -1,0 +1,1 @@
+deploy/consumers.yaml must declare a non-empty list under the consumers key
