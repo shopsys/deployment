@@ -85,23 +85,92 @@ function remove_dist() {
 
 function create_consumer_manifests() {
     local -a DEFAULT_CONSUMERS=("$@")
-
-    TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer.template.yaml"
+    local CONSUMER NAME TRANSPORT_NAMES REPLICAS_COUNT
 
     for CONSUMER in "${DEFAULT_CONSUMERS[@]}"; do
         IFS=":" read -r NAME TRANSPORT_NAMES REPLICAS_COUNT <<< "$CONSUMER"
 
-        CONSUMER_MANIFEST_PATH="${CONFIGURATION_TARGET_PATH}/deployments/consumer-${NAME}.yaml"
+        create_consumer_deployment_manifest "${NAME}" "${TRANSPORT_NAMES}" "${REPLICAS_COUNT}"
+    done
+}
 
-        cp "${TEMPLATE_PATH}" "${CONSUMER_MANIFEST_PATH}"
+function create_consumer_deployment_manifest() {
+    local NAME="$1"
+    local TRANSPORT_NAMES="$2"
+    local REPLICAS_COUNT="$3"
 
-        sed -i "s|{{NAME}}|${NAME}|g" "${CONSUMER_MANIFEST_PATH}"
-        sed -i "s|{{TRANSPORT_NAMES}}|${TRANSPORT_NAMES}|g" "${CONSUMER_MANIFEST_PATH}"
-        sed -i "s|{{REPLICAS_COUNT}}|${REPLICAS_COUNT}|g" "${CONSUMER_MANIFEST_PATH}"
+    local TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer.template.yaml"
+    local CONSUMER_MANIFEST_PATH="${CONFIGURATION_TARGET_PATH}/deployments/consumer-${NAME}.yaml"
 
-        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/continuous-deploy/kustomization.yaml"
-        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy/kustomization.yaml"
-        sed -i "/resources:/a\    - ../../../deployments/consumer-${NAME}.yaml" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/first-deploy-with-demo-data/kustomization.yaml"
+    cp "${TEMPLATE_PATH}" "${CONSUMER_MANIFEST_PATH}"
+
+    sed -i "s|{{NAME}}|${NAME}|g" "${CONSUMER_MANIFEST_PATH}"
+    sed -i "s|{{TRANSPORT_NAMES}}|${TRANSPORT_NAMES}|g" "${CONSUMER_MANIFEST_PATH}"
+    sed -i "s|{{REPLICAS_COUNT}}|${REPLICAS_COUNT}|g" "${CONSUMER_MANIFEST_PATH}"
+
+    add_migrate_application_resource "../../../deployments/consumer-${NAME}.yaml"
+}
+
+# Adds a manifest (path relative to the kustomization directories) to all migrate-application kustomizations
+function add_migrate_application_resource() {
+    local RESOURCE_PATH="$1"
+    local DEPLOY_TYPE
+
+    for DEPLOY_TYPE in continuous-deploy first-deploy first-deploy-with-demo-data; do
+        sed -i "/resources:/a\    - ${RESOURCE_PATH}" "${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${DEPLOY_TYPE}/kustomization.yaml"
+    done
+}
+
+function create_consumer_hpa_manifest() {
+    local NAME="$1"
+    local MIN_REPLICAS="$2"
+    local MAX_REPLICAS="$3"
+    local SCALE_THRESHOLD="$4"
+    local QUEUE_NAMES_LIST="$5"
+
+    local TEMPLATE_PATH="${CONFIGURATION_TARGET_PATH}/manifest-templates/consumer-hpa.template.yaml"
+    local CONSUMER_HPA_MANIFEST_PATH="${CONFIGURATION_TARGET_PATH}/autoscaling/consumer-${NAME}.yaml"
+
+    mkdir -p "${CONFIGURATION_TARGET_PATH}/autoscaling"
+    cp "${TEMPLATE_PATH}" "${CONSUMER_HPA_MANIFEST_PATH}"
+
+    local QUEUE_NAMES="" QUEUE_NAME
+    for QUEUE_NAME in ${QUEUE_NAMES_LIST}; do
+        if [ -n "${QUEUE_NAMES}" ]; then
+            QUEUE_NAMES="${QUEUE_NAMES}, "
+        fi
+        QUEUE_NAMES="${QUEUE_NAMES}\"${QUEUE_NAME}\""
+    done
+
+    sed -i "s|{{NAME}}|${NAME}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{MIN_REPLICAS}}|${MIN_REPLICAS}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{MAX_REPLICAS}}|${MAX_REPLICAS}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{SCALE_THRESHOLD}}|${SCALE_THRESHOLD}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+    sed -i "s|{{QUEUE_NAMES}}|${QUEUE_NAMES}|g" "${CONSUMER_HPA_MANIFEST_PATH}"
+
+    add_migrate_application_resource "../../../autoscaling/consumer-${NAME}.yaml"
+}
+
+# Builds a kustomization into a file: runCommand appends 2>&1 to its command, so a redirect written inline would send the kustomize error into the file
+function build_kustomization() {
+    local KUSTOMIZE_PATH="$1"
+    local OUTPUT_PATH="$2"
+
+    kustomize build --load-restrictor LoadRestrictionsNone "${KUSTOMIZE_PATH}" > "${OUTPUT_PATH}"
+}
+
+# Deletes the consumer autoscalers (label consumer-autoscaling=true) deployed in the namespace that are not in the built manifest (first argument).
+function delete_stale_consumer_hpas() {
+    local MANIFEST_PATH="$1"
+    local WANTED_HPAS DEPLOYED_HPAS DEPLOYED_HPA
+
+    WANTED_HPAS=$(yq e -N 'select(.kind == "HorizontalPodAutoscaler" and .metadata.labels["consumer-autoscaling"] == "true") | .metadata.name' "${MANIFEST_PATH}") || return 1
+    DEPLOYED_HPAS=$(kubectl get hpa -l consumer-autoscaling=true --namespace="${PROJECT_NAME}" -o name) || return 1
+
+    for DEPLOYED_HPA in ${DEPLOYED_HPAS}; do
+        if ! grep -Fqx -- "${DEPLOYED_HPA##*/}" <<< "${WANTED_HPAS}"; then
+            kubectl delete "${DEPLOYED_HPA}" --namespace="${PROJECT_NAME}" || return 1
+        fi
     done
 }
 

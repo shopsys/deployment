@@ -1,0 +1,5 @@
+consumers:
+    # The semicolon is the field separator of the lines the parser reads, so the name has to be rejected before the fields are joined
+    -   name: "mail;other_transport;2"
+        transports: [email_transport]
+        replicas: 1

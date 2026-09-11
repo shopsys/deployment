@@ -40,18 +40,24 @@ VARS=(
     RABBITMQ_IP_WHITELIST
 )
 
-# Common exports
+# Common exports (the deploy tests override DISPLAY_FINAL_CONFIGURATION)
 export FIRST_DEPLOY=0
-export DISPLAY_FINAL_CONFIGURATION=0
+export DISPLAY_FINAL_CONFIGURATION="${DISPLAY_FINAL_CONFIGURATION:-0}"
 
 function run_generate() {
     source "${DEPLOY_TARGET_PATH}/functions.sh"
     source "${DEPLOY_TARGET_PATH}/parts/domains.sh"
     source "${DEPLOY_TARGET_PATH}/parts/domain-rabbitmq-management.sh"
+    source "${DEPLOY_TARGET_PATH}/parts/consumers.sh"
     source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/kubernetes-variables.sh"
     source "${DEPLOY_TARGET_PATH}/parts/cron.sh"
     source "${DEPLOY_TARGET_PATH}/parts/autoscaling.sh"
+}
+
+# kubectl and sleep are mocked by the test runner (tests/lib/mock), see "Deploy tests" in tests/README.md
+function run_deploy() {
+    source "${DEPLOY_TARGET_PATH}/parts/deploy.sh"
 }
 
 function run_merge() {

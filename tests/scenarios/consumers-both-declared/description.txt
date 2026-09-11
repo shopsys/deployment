@@ -1,0 +1,1 @@
+Consumers declared both in DEFAULT_CONSUMERS (inside the merge function, as in project-base) and in deploy/consumers.yaml must fail the deploy

@@ -109,14 +109,89 @@ build_kustomize() {
     local output_file="$2"
 
     if command -v kustomize &> /dev/null; then
-        # Try newer syntax first, fall back to older underscore syntax
-        kustomize build --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1 || \
-        kustomize build --load_restrictor none "$kustomize_path" > "$output_file" 2>&1
+        kustomize build --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1
     else
         # Fallback to kubectl kustomize
-        kubectl kustomize --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1 || \
-        kubectl kustomize --load_restrictor none "$kustomize_path" > "$output_file" 2>&1
+        kubectl kustomize --load-restrictor LoadRestrictionsNone "$kustomize_path" > "$output_file" 2>&1
     fi
+}
+
+# Invariants of the generated consumer manifests, checked independently of the expected files (see tests/README.md)
+check_consumer_invariants() {
+    local scenario_name="$1"
+    local output_dir="$2"
+    local test_tmp="$3"
+    local manifest="${output_dir}/migrate-continuous-deploy.yaml"
+    local prefix="${scenario_name}: invariant: "
+    local failed=0
+
+    if [ ! -f "$manifest" ]; then
+        return 0
+    fi
+
+    local consumers hpas hpa_targets name
+    consumers=$(yq e -N 'select(.kind == "Deployment" and (.metadata.name | test("^consumer-"))) | .metadata.name' "$manifest")
+    hpas=$(yq e -N 'select(.kind == "HorizontalPodAutoscaler" and .metadata.labels["consumer-autoscaling"] == "true") | .metadata.name' "$manifest")
+    # an autoscaler is bound to its deployment by scaleTargetRef, not by its name (a project template may name the autoscalers differently)
+    hpa_targets=$(yq e -N 'select(.kind == "HorizontalPodAutoscaler" and .metadata.labels["consumer-autoscaling"] == "true") | .spec.scaleTargetRef.name' "$manifest")
+
+    if [ -f "${test_tmp}/deploy/consumers.yaml" ]; then
+        local declared generated
+        declared=$(yq e '.consumers | length' "${test_tmp}/deploy/consumers.yaml")
+        generated=$(echo "$consumers" | grep -c . || true)
+        if [ "$declared" -eq "$generated" ]; then
+            print_success "${prefix}all ${declared} consumers from consumers.yaml have a deployment"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+        else
+            print_error "${prefix}consumers.yaml declares ${declared} consumers but ${generated} deployments were generated"
+            TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
+        fi
+    fi
+
+    for name in $consumers; do
+        local env_count replicas has_hpa
+        env_count=$(yq e "select(.kind == \"Deployment\" and .metadata.name == \"${name}\") | .spec.template.spec.containers[0].env | length" "$manifest")
+        replicas=$(yq e "select(.kind == \"Deployment\" and .metadata.name == \"${name}\") | .spec.replicas" "$manifest")
+        has_hpa=$(echo "$hpa_targets" | grep -cx "$name" || true)
+
+        # environment-variables.sh injects ENVIRONMENT_VARIABLES only into consumer deployments that already exist when it runs
+        if [ "$env_count" -gt 0 ]; then
+            print_success "${prefix}${name} has ${env_count} environment variables"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+        else
+            print_error "${prefix}${name} has no environment variables (parts sourced in wrong order?)"
+            TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
+        fi
+
+        if [ "$has_hpa" -gt 0 ] && [ "$replicas" != "null" ]; then
+            print_error "${prefix}${name} has an autoscaler but also static replicas ${replicas}"
+            TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
+        elif [ "$has_hpa" -eq 0 ] && ! [[ "$replicas" =~ ^[0-9]+$ ]]; then
+            print_error "${prefix}${name} has no autoscaler and no static replicas"
+            TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
+        else
+            print_success "${prefix}${name} replicas ownership is consistent (hpa=${has_hpa}, replicas=${replicas})"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+        fi
+    done
+
+    for name in $hpas; do
+        local target queues min max
+        target=$(yq e "select(.kind == \"HorizontalPodAutoscaler\" and .metadata.name == \"${name}\") | .spec.scaleTargetRef.name" "$manifest")
+        queues=$(yq e "select(.kind == \"HorizontalPodAutoscaler\" and .metadata.name == \"${name}\") | .spec.metrics[0].external.metric.selector.matchExpressions[0].values | length" "$manifest")
+        min=$(yq e "select(.kind == \"HorizontalPodAutoscaler\" and .metadata.name == \"${name}\") | .spec.minReplicas" "$manifest")
+        max=$(yq e "select(.kind == \"HorizontalPodAutoscaler\" and .metadata.name == \"${name}\") | .spec.maxReplicas" "$manifest")
+
+        if echo "$consumers" | grep -qx "$target" && [ "$queues" -gt 0 ] && [ "$min" -ge 0 ] && [ "$max" -gt "$min" ]; then
+            print_success "${prefix}${name} autoscaler targets ${target}, ${queues} queue(s), ${min}-${max} replicas"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+        else
+            print_error "${prefix}${name} autoscaler is broken (target=${target}, queues=${queues}, min=${min}, max=${max})"
+            TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
+        fi
+    done
+
+    return $failed
 }
 
 # Reset test counters

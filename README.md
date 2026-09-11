@@ -111,6 +111,7 @@ If you want to define your custom variables see [Define custom variables](#defin
 | USING_CLOUDFLARE             | _1_ OR _0_                       | Set to 1 if your site is using Cloudflare (enables IP whitelisting)                                                         | production/devel |
 | MCP_INGRESS_ENABLED          | _1_ OR _0_                       | Set to 0 to disable the separate ingress publishing the MCP endpoints without HTTP basic auth (default: 1)                  | production/devel |
 | MCP_IP_WHITELIST             | 203.0.113.0/24, 198.51.100.10/32 | VPN egress IP ranges allowed to access MCP; when empty, MCP access is not restricted by source IP                           | production/devel |
+| ENABLE_CONSUMER_AUTOSCALING  | _true_ OR _false_                | Enable autoscaling of consumers by RabbitMQ queue backlog (default: false), see [Consumers](#consumers)                     | production/devel |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
@@ -145,6 +146,98 @@ You can override Kubernetes manifests by placing your custom manifests into `app
        )
        ...
    ```
+
+### Consumers
+
+Consumers are Symfony Messenger workers (`messenger:consume`) deployed as `consumer-<name>` deployments.
+By default they are declared in the `DEFAULT_CONSUMERS` array in `deploy-project.sh` in the format `<name>:<transports separated by space>:<replicas>`,
+e.g. `"product-recalculation:product_recalculation_priority_high product_recalculation_priority_regular:1"`.
+This way keeps working unchanged, but it cannot declare autoscaling - for that declare the consumers in `consumers.yaml` instead.
+
+#### Declare consumers in consumers.yaml
+
+1. Source the new part in the `deploy()` function of `deploy-project.sh` before `environment-variables.sh`,
+   which injects the environment variables into the generated consumer deployments (the part fails the deploy when sourced too late):
+
+   ```diff
+   ...
+       source "${DEPLOY_TARGET_PATH}/parts/domain-rabbitmq-management.sh"
+   +   source "${DEPLOY_TARGET_PATH}/parts/consumers.sh"
+       source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
+   ...
+   ```
+
+2. Move the consumer declaration from `DEFAULT_CONSUMERS` to `app/deploy/consumers.yaml` and remove the array from `deploy-project.sh`:
+
+   ```yaml
+   consumers:
+       -   name: product-recalculation                   # deployment is named consumer-<name>
+           transports: [product_recalculation_priority_high, product_recalculation_priority_regular]
+           replicas: 1                                   # static replicas count, used when consumer autoscaling is disabled
+           autoscaling:                                  # optional, omit for a consumer with static replicas only
+               minReplicas: 1                            # 0 allowed on a cluster with the HPAScaleToZero feature gate
+               maxReplicas: 8                            # must be higher than minReplicas
+               threshold: 500                            # target count of ready messages per pod
+               queues: [product_recalculation_priority_high, product_recalculation_priority_regular]   # optional, defaults to transports
+       -   name: email
+           transports: [email_transport]
+           replicas: 1
+   ```
+
+   | Field                     | Meaning                                                                                                                                                       |
+   |:--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   | `name`                    | Name of the deployment `consumer-<name>`: lowercase letters, digits and dashes, starting and ending with a letter or digit, at most 54 characters               |
+   | `transports`              | Non-empty list of Symfony Messenger transport names passed to `messenger:consume` (same character rules as `autoscaling.queues`)                              |
+   | `replicas`                | Static replicas count (integer, `0` allowed) used when consumer autoscaling is disabled                                                                       |
+   | `autoscaling`             | Optional, omit it for a consumer that should always run with the static `replicas`                                                                            |
+   | `autoscaling.minReplicas` | Lower bound of the autoscaler; `0` scales the consumer to zero pods while its queues are empty and needs the `HPAScaleToZero` feature gate on the cluster (the API server rejects `0` without it) |
+   | `autoscaling.maxReplicas` | Upper bound of the autoscaler, must be higher than `minReplicas`                                                                                              |
+   | `autoscaling.threshold`   | Target count of ready messages per pod, see [Enable consumer autoscaling](#enable-consumer-autoscaling)                                                        |
+   | `autoscaling.queues`      | Non-empty list of RabbitMQ queue names watched by the autoscaler, defaults to `transports` - set it when the queue name differs from the transport name (see `config/packages/messenger.yaml`); letters, digits, `_`, `.` and `-`, starting and ending with a letter or digit, at most 63 characters |
+
+> [!IMPORTANT]
+> A project must use either `DEFAULT_CONSUMERS` or `consumers.yaml`. The deploy fails when `consumers.yaml` exists
+> and the merge phase already generated consumer deployments (from `DEFAULT_CONSUMERS` or from `orchestration/kubernetes/deployments`).
+
+The file is read during deploy, so changing replicas or thresholds does not need a rebuild of the image.
+The whole declaration, including the autoscaling blocks, is validated on every deploy even when
+`ENABLE_CONSUMER_AUTOSCALING` is not set. A mistake in the file therefore fails on any environment,
+not only on the one with autoscaling enabled.
+
+#### Enable consumer autoscaling
+
+Consumers with an `autoscaling` block can be scaled by the count of messages waiting in their RabbitMQ queues instead of running a static number of replicas.
+Each of them gets a Horizontal pod autoscaler (`autoscaling/v2`) over the external metric `rabbitmq_queue_backlog` (ready messages only),
+summed over all `queues` of the consumer.
+
+> [!IMPORTANT]
+> The autoscalers need the external metric `rabbitmq_queue_backlog` (label `queue`, namespace-scoped)
+> from the External Metrics API of the cluster. The Shopsys clusters provide it. Without the metric
+> the autoscaler reports `ScalingActive: False`, keeps its consumer at `minReplicas` and never scales it up.
+
+Set `ENABLE_CONSUMER_AUTOSCALING=true` as an environment variable of the environments that should scale (e.g. production only, default is `false`):
+
+- enabled: an autoscaler is deployed for every consumer with an `autoscaling` block and `replicas` is omitted from its deployment, so the autoscaler owns the replicas count
+- disabled: consumers run with the static `replicas`, so the variable works as a kill switch
+
+Existing autoscalers are updated in place by the deploy. An autoscaler of a consumer that lost its `autoscaling` block, was renamed
+or whose environment disabled the flag is deleted after the successful build of the migrate-application configuration and right before its apply
+(kubectl apply does not prune), a deploy failing earlier never touches them. The cleanup needs `list` and `delete` permissions
+on `horizontalpodautoscalers` in the namespace for the deploy account and runs only for projects with `consumers.yaml`.
+A renamed consumer leaves its old deployment `consumer-<old name>` behind for the same reason, delete it manually (this applies to `DEFAULT_CONSUMERS` as well),
+and so do the autoscalers of a project that removes `consumers.yaml` altogether.
+
+> [!NOTE]
+> The first deploy of a consumer with an autoscaler (after enabling the flag or after adding its `autoscaling` block) resets it to 1 replica for a moment: removing `replicas` from a deployment
+> that was previously applied with a static count makes the API server fall back to the default, until the new autoscaler reconciles (within its 15 s sync period).
+> Do it outside of peak hours if that matters. Later deploys keep the replicas set by the autoscaler.
+
+`threshold` is the target count of ready messages per pod. A useful rule of thumb is the count of messages one pod processes in about a minute (per-pod throughput × 60 s):
+with a threshold of `500` and 2000 ready messages the autoscaler runs 4 pods, with an empty queue it scales down to `minReplicas`.
+Scale-up is immediate, scale-down starts after 5 minutes of stabilization and removes at most 1 pod per 2 minutes.
+
+The scaling behavior and the metric name live in `kubernetes/manifest-templates/consumer-hpa.template.yaml` and can be overridden in `orchestration/kubernetes/manifest-templates/` as any other manifest.
+Keep the label `consumer-autoscaling: "true"` in an overridden template, the deploy recognizes the autoscalers it manages (and deletes the stale ones) by it.
 
 ### Add more or less domains
 

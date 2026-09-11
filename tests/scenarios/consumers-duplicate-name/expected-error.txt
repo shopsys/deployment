@@ -1,0 +1,1 @@
+Consumer names must be unique, declared more than once:

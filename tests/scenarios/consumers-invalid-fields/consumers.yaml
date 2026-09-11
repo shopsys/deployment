@@ -1,0 +1,26 @@
+consumers:
+    # Strings with the field separator of the parser in numeric fields: without the validation in the YAML
+    # "1;garbage" passed as 1 replica and "500;other_queue" as threshold 500 with the queue selector value "other_queue;email_transport"
+    -   name: email
+        transports: [email_transport]
+        replicas: "1;garbage"
+    -   name: order
+        transports: [placed_order_transport]
+        replicas: 1
+        autoscaling:
+            minReplicas: 1
+            maxReplicas: 3
+            threshold: "500;other_queue"
+    # Wrong types and out-of-range values
+    -   name: export
+        transports: export_transport
+        replicas: -1
+        autoscaling:
+            minReplicas: -1
+            maxReplicas: -1
+            threshold: 0
+            queues: []
+    -   name: idle
+        transports: [idle_transport]
+        replicas: 1
+        autoscaling: true

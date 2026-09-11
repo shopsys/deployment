@@ -1,0 +1,1 @@
+Wrong types, out-of-range values and strings with the field separator in numeric fields of deploy/consumers.yaml must all be reported by the validation

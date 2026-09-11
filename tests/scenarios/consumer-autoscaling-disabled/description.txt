@@ -1,0 +1,1 @@
+Production deployment with consumers declared in deploy/consumers.yaml and consumer autoscaling disabled (default): static replicas, no autoscalers

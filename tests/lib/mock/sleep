@@ -1,0 +1,3 @@
+#!/bin/bash
+# Mock of sleep for the deploy tests: deploy.sh polls the migration job every 5 seconds, the mocked kubectl reports it complete at once
+exit 0

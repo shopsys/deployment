@@ -1,0 +1,1 @@
+A consumer name declared twice in deploy/consumers.yaml must fail the validation before the deploy starts
