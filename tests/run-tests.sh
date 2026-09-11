@@ -147,6 +147,11 @@ setup_test_environment() {
     mkdir -p "${test_tmp}/deploy"
     echo "testuser:\$apr1\$test\$hashedpassword" > "${test_tmp}/deploy/basicHttpAuth"
 
+    # Provide project-level consumer declaration (read by deploy/parts/consumers.sh) when the scenario ships one
+    if [ -f "${SCENARIOS_DIR}/${scenario_name}/consumers.yaml" ]; then
+        cp "${SCENARIOS_DIR}/${scenario_name}/consumers.yaml" "${test_tmp}/deploy/consumers.yaml"
+    fi
+
     echo "$test_tmp"
 }
 
@@ -312,6 +317,14 @@ run_scenario() {
     if ! output_dir=$(build_outputs "$test_tmp"); then
         print_error "Kustomize build failed for scenario: $scenario_name (expected files not updated)"
         TESTS_FAILED=$((TESTS_FAILED + 1))
+        cleanup_test_env "$test_tmp"
+        return 1
+    fi
+
+    # Invariants independent of the expected files, so that a wrong output cannot be recorded as expected by --update
+    print_info "Checking manifest invariants..."
+    if ! check_consumer_invariants "$scenario_name" "$output_dir" "$test_tmp"; then
+        print_error "Manifest invariants violated for scenario: $scenario_name (expected files not updated)"
         cleanup_test_env "$test_tmp"
         return 1
     fi

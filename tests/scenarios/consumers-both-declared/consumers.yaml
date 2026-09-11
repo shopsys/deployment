@@ -1,0 +1,9 @@
+consumers:
+    # A name different from the DEFAULT_CONSUMERS one: without the conflict check both consumers would be deployed silently
+    -   name: product-recalculation
+        transports: [product_recalculation_priority_high]
+        replicas: 1
+        autoscaling:
+            minReplicas: 1
+            maxReplicas: 8
+            threshold: 500
