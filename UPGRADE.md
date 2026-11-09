@@ -10,6 +10,13 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.4.0 to v5.5.0
+
+- added network policies isolating the project namespace, see [Network policies](./README.md#network-policies)
+  - incoming connections from other namespaces are now denied, except from the ingress controller and Prometheus
+  - if any service from another namespace connects to your project directly (not through an Ingress), allow it by a NetworkPolicy in `orchestration/kubernetes/network-policies/`
+  - the Kubernetes user used for the deploy has to be allowed to manage `networkpolicies` in the project namespace
+
 ## Upgrade from v5.3.0 to v5.4.0
 
 - added Gotenberg service for gift voucher PDF rendering ([#83](https://github.com/shopsys/deployment/pull/83))
