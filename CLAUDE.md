@@ -57,9 +57,10 @@ DISPLAY_FINAL_CONFIGURATION=1 ./deploy/deploy-project.sh deploy
    - `configmap/`: Configuration files for services
    - `services/`: Kubernetes service definitions
    - `kustomize/`: Kustomization overlays for different deployment scenarios
+   - `network-policies/`: NetworkPolicies isolating the project namespace (applied on every deploy, no opt-out)
 
 3. **Deployment Flow**
-   - Namespace creation and secret management
+   - Namespace creation, network policies and secret management
    - Database migrations via temporary job pod
    - Rolling deployment of webserver/PHP-FPM containers
    - Storefront deployment (Next.js application)

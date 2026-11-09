@@ -1,0 +1,12 @@
+# Isolates all pods of the project namespace for incoming traffic. Only connections
+# allowed by the other policies in this directory (and kubelet probes from the pod's
+# own node, which Kubernetes always allows) can reach the pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: default-deny-ingress
+    namespace: "myproject-cloudflare-dev"
+spec:
+    podSelector: {}
+    policyTypes:
+        - Ingress

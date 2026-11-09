@@ -22,6 +22,11 @@ slack_notification "start"
 echo -n "    Create namespace "
 runCommand "SKIP" "kubectl create namespace ${PROJECT_NAME}"
 
+# Files are applied in alphabetical order, so the allow-* policies exist before
+# default-deny-ingress isolates the pods on the first deploy
+echo -n "    Apply network policies "
+runCommand "ERROR" "kubectl apply --namespace=${PROJECT_NAME} -f \"${CONFIGURATION_TARGET_PATH}/network-policies\""
+
 echo -n "    Delete secret for docker registry "
 runCommand "SKIP" "kubectl delete secret dockerregistry -n ${PROJECT_NAME}"
 
