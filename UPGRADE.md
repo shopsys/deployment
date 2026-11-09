@@ -13,9 +13,11 @@
 ## Upgrade from v5.4.0 to v5.5.0
 
 - lowered memory requests of the `redis` (2500Mi -> 128Mi) and `storefront` (800Mi -> 640Mi) containers, memory limits are unchanged ([#86](https://github.com/shopsys/deployment/pull/86))
-  - if your project needs higher requests (e.g. Redis keeps more than 128Mi of data), set them with the new `REDIS_MEMORY_REQUEST` and `STOREFRONT_MEMORY_REQUEST` variables (applied on production only, see [Environment Variables](./README.md#environment-variables))
+  - if your project needs higher requests (e.g. Redis keeps more than 128Mi of data), set them with the new memory request variables below
+- added `PHP_FPM_MEMORY_REQUEST`, `REDIS_MEMORY_REQUEST` and `STOREFRONT_MEMORY_REQUEST` variables to override the memory requests of the containers (applied on production only, see [Environment Variables](./README.md#environment-variables)) ([#86](https://github.com/shopsys/deployment/pull/86))
 - added `GOTENBERG_ENABLED` variable ([#86](https://github.com/shopsys/deployment/pull/86))
-  - set it to `0` if your project does not use Gotenberg, an already deployed Gotenberg deployment and service are deleted during the next deploy
+  - set it to `0` if your project does not use Gotenberg
+  - an already deployed Gotenberg is not removed automatically, delete it with `kubectl delete deployment/gotenberg service/gotenberg --namespace=<project-namespace>`
 
 ## Upgrade from v5.3.0 to v5.4.0
 

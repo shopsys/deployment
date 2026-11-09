@@ -76,8 +76,12 @@ else
         echo -e "[${GREEN}OK${NO_COLOR}]"
     fi
 
-    if [ -v REDIS_MEMORY_REQUEST ] || [ -v STOREFRONT_MEMORY_REQUEST ]; then
+    if [ -v PHP_FPM_MEMORY_REQUEST ] || [ -v REDIS_MEMORY_REQUEST ] || [ -v STOREFRONT_MEMORY_REQUEST ]; then
         echo -n "    Replace pods memory requests "
+
+        if [ -v PHP_FPM_MEMORY_REQUEST ]; then
+            yq e -i ".spec.template.spec.containers[0].resources.requests.memory = \"${PHP_FPM_MEMORY_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+        fi
 
         if [ -v REDIS_MEMORY_REQUEST ]; then
             yq e -i ".spec.template.spec.containers[1].resources.requests.memory = \"${REDIS_MEMORY_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
@@ -128,12 +132,6 @@ fi
 
 echo -n "    Apply configuration "
 runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" | kubectl apply -f -"
-
-# Gotenberg deployed before it was disabled would otherwise keep running with the old configuration
-if [ "${GOTENBERG_ENABLED}" != "1" ]; then
-    echo -n "    Delete disabled Gotenberg service "
-    runCommand "SKIP" "kubectl delete deployment/gotenberg service/gotenberg --ignore-not-found --namespace=${PROJECT_NAME}"
-fi
 
 echo -n "    Waiting for migrate application "
 
