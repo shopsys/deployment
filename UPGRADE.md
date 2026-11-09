@@ -10,6 +10,13 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.4.0 to v5.5.0
+
+- lowered memory requests of the `redis` (2500Mi -> 128Mi) and `storefront` (800Mi -> 640Mi) containers, memory limits are unchanged ([#86](https://github.com/shopsys/deployment/pull/86))
+  - if your project needs higher requests (e.g. Redis keeps more than 128Mi of data), override the deployments in `orchestration/kubernetes/deployments/`
+- added `GOTENBERG_ENABLED` variable ([#86](https://github.com/shopsys/deployment/pull/86))
+  - set it to `0` if your project does not use Gotenberg, an already deployed Gotenberg deployment and service are deleted during the next deploy
+
 ## Upgrade from v5.3.0 to v5.4.0
 
 - added Gotenberg service for gift voucher PDF rendering ([#83](https://github.com/shopsys/deployment/pull/83))
