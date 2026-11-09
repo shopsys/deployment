@@ -115,6 +115,12 @@ fi
 echo -n "    Apply configuration "
 runCommand "ERROR" "kustomize build --load-restrictor LoadRestrictionsNone \"${CONFIGURATION_TARGET_PATH}/kustomize/migrate-application/${KUSTOMIZE_FOLDER}\" | kubectl apply -f -"
 
+# Gotenberg deployed before it was disabled would otherwise keep running with the old configuration
+if [ "${GOTENBERG_ENABLED}" != "1" ]; then
+    echo -n "    Delete disabled Gotenberg service "
+    runCommand "SKIP" "kubectl delete deployment/gotenberg service/gotenberg --ignore-not-found --namespace=${PROJECT_NAME}"
+fi
+
 echo -n "    Waiting for migrate application "
 
 MIGRATION_COMPLETE_EXIT_CODE=1

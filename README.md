@@ -111,6 +111,7 @@ If you want to define your custom variables see [Define custom variables](#defin
 | USING_CLOUDFLARE             | _1_ OR _0_                       | Set to 1 if your site is using Cloudflare (enables IP whitelisting)                                                         | production/devel |
 | MCP_INGRESS_ENABLED          | _1_ OR _0_                       | Set to 0 to disable the separate ingress publishing the MCP endpoints without HTTP basic auth (default: 1)                  | production/devel |
 | MCP_IP_WHITELIST             | 203.0.113.0/24, 198.51.100.10/32 | VPN egress IP ranges allowed to access MCP; when empty, MCP access is not restricted by source IP                           | production/devel |
+| GOTENBERG_ENABLED            | _1_ OR _0_                       | Set to 0 to disable the Gotenberg service for PDF rendering, an already deployed one is deleted (default: 1)                | production/devel |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
 
