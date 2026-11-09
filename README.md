@@ -111,8 +111,16 @@ If you want to define your custom variables see [Define custom variables](#defin
 | USING_CLOUDFLARE             | _1_ OR _0_                       | Set to 1 if your site is using Cloudflare (enables IP whitelisting)                                                         | production/devel |
 | MCP_INGRESS_ENABLED          | _1_ OR _0_                       | Set to 0 to disable the separate ingress publishing the MCP endpoints without HTTP basic auth (default: 1)                  | production/devel |
 | MCP_IP_WHITELIST             | 203.0.113.0/24, 198.51.100.10/32 | VPN egress IP ranges allowed to access MCP; when empty, MCP access is not restricted by source IP                           | production/devel |
+| GOTENBERG_ENABLED            | _1_ OR _0_                       | Set to 0 to disable the Gotenberg service for PDF rendering (default: 1)                                                    | production/devel |
+| PHP_FPM_CPU_REQUEST          | 250m                             | CPU request of the PHP-FPM container (default: 500m) *2)                                                                    |       production |
+| STOREFRONT_CPU_REQUEST       | 250m                             | CPU request of the Storefront container (default: 500m) *2)                                                                 |       production |
+| PHP_FPM_MEMORY_REQUEST       | 1Gi                              | Memory request of the PHP-FPM container, must not exceed its 2Gi limit (default: 500Mi) *2)                                 |       production |
+| REDIS_MEMORY_REQUEST         | 2500Mi                           | Memory request of the Redis container, must not exceed its 2500Mi limit (default: 128Mi) *2)                                |       production |
+| STOREFRONT_MEMORY_REQUEST    | 1Gi                              | Memory request of the Storefront container, must not exceed its 1.5Gi limit (default: 640Mi) *2)                            |       production |
 
 *1) Credentials can be generated in Gitlab (Settings -> Repository -> Deploy Tokens) with `read_registry` scope only 
+
+*2) Applied only on production, ignored when the resources are downscaled (`RUNNING_PRODUCTION=0` or `DOWNSCALE_RESOURCE=1`)
 
 You can add your custom variables. *Do not forget to edit your `deploy-project.sh` file*
 

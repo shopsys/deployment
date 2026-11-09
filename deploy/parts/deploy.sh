@@ -75,6 +75,24 @@ else
 
         echo -e "[${GREEN}OK${NO_COLOR}]"
     fi
+
+    if [ -v PHP_FPM_MEMORY_REQUEST ] || [ -v REDIS_MEMORY_REQUEST ] || [ -v STOREFRONT_MEMORY_REQUEST ]; then
+        echo -n "    Replace pods memory requests "
+
+        if [ -v PHP_FPM_MEMORY_REQUEST ]; then
+            yq e -i ".spec.template.spec.containers[0].resources.requests.memory = \"${PHP_FPM_MEMORY_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/webserver-php-fpm.yaml"
+        fi
+
+        if [ -v REDIS_MEMORY_REQUEST ]; then
+            yq e -i ".spec.template.spec.containers[1].resources.requests.memory = \"${REDIS_MEMORY_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/redis.yaml"
+        fi
+
+        if [ -v STOREFRONT_MEMORY_REQUEST ]; then
+            yq e -i ".spec.template.spec.containers[0].resources.requests.memory = \"${STOREFRONT_MEMORY_REQUEST}\"" "${CONFIGURATION_TARGET_PATH}/deployments/storefront.yaml"
+        fi
+
+        echo -e "[${GREEN}OK${NO_COLOR}]"
+    fi
 fi
 
 DEPLOYED_CRON_POD=$(kubectl get pods --namespace=${PROJECT_NAME} --field-selector=status.phase=Running -l app=cron -o=jsonpath='{.items[?(@.status.containerStatuses[0].state.running)].metadata.name}') || true

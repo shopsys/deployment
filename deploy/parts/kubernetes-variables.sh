@@ -19,6 +19,15 @@ fi
 
 VARS+=(GOTENBERG_VERSION)
 
+# Global switch to disable the Gotenberg service (default: enabled)
+GOTENBERG_ENABLED=${GOTENBERG_ENABLED:-1}
+
+if [ "${GOTENBERG_ENABLED}" != "1" ]; then
+  for KUSTOMIZATION_FILE in "${CONFIGURATION_TARGET_PATH}"/kustomize/migrate-application/*/kustomization.yaml; do
+    yq e -i 'del(.resources[] | select(. == "../../../deployments/gotenberg.yaml" or . == "../../../services/gotenberg.yaml"))' "${KUSTOMIZATION_FILE}"
+  done
+fi
+
 if [ -z ${ADMIN_URL} ]; then
   ADMIN_URL='admin'
 fi
