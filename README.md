@@ -293,6 +293,40 @@ If your site is using Cloudflare, you can restrict direct access and allow traff
 
 This prevents users from bypassing Cloudflare by accessing your origin server directly.
 
+### Network policies
+
+Every deploy applies the network policies from `kubernetes/network-policies/` to the project namespace. Pods of the project accept incoming connections only from:
+
+- pods in the same namespace,
+- the ingress controller (pods `app.kubernetes.io/name: rke2-ingress-nginx` in `kube-system`), so all Ingresses of the project and cert-manager HTTP-01 challenges keep working,
+- Prometheus (pods `app.kubernetes.io/name: prometheus` in `monitoring`), so metrics exporters can be scraped,
+- the node the pod is running on (kubelet probes are always allowed by Kubernetes).
+
+All other incoming traffic is denied, including traffic from namespaces of other projects. Outgoing traffic is not restricted.
+
+If a service from another namespace needs to connect to your project directly (not through an Ingress), allow it by adding a NetworkPolicy manifest into `app/orchestration/kubernetes/network-policies/` in your project. All manifests in this folder are applied together with the default ones:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-my-service
+    namespace: "{{PROJECT_NAME}}"
+spec:
+    podSelector:
+        matchLabels:
+            app: webserver-php-fpm
+    policyTypes:
+        - Ingress
+    ingress:
+        -   from:
+                -   namespaceSelector:
+                        matchLabels:
+                            kubernetes.io/metadata.name: my-service-namespace
+            ports:
+                -   port: 8080
+```
+
 ### Notify about deployment on Slack
 
 You can enable automatic notification of your deployment directly into Slack channel. It has some features:

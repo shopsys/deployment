@@ -181,6 +181,7 @@ build_outputs() {
     cp "${config_path}/horizontalPodAutoscaler.yaml" "${output_dir}/" 2>/dev/null || true
     cp "${config_path}/horizontalStorefrontAutoscaler.yaml" "${output_dir}/" 2>/dev/null || true
     cp "${config_path}/namespace.yaml" "${output_dir}/" 2>/dev/null || true
+    cp -R "${config_path}/network-policies" "${output_dir}/" 2>/dev/null || true
 
     echo "$output_dir"
 }
