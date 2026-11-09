@@ -220,7 +220,7 @@ spec:
             memory: 2500Mi
           requests:
             cpu: 100m
-            memory: 2500Mi
+            memory: 128Mi
         volumeMounts:
         - mountPath: /health
           name: health
