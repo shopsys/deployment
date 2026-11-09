@@ -1,0 +1,22 @@
+# Allows the ingress controller to reach the backends of the project's Ingresses
+# (webserver, RabbitMQ management, cert-manager HTTP-01 solvers, ...).
+# The selector matches all ingress-nginx instances in kube-system (including the
+# Cloudflare one). No port restriction is needed, because an Ingress can route only
+# to Services of its own namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-ingress-controller
+    namespace: "myproject-cloudflare-dev"
+spec:
+    podSelector: {}
+    policyTypes:
+        - Ingress
+    ingress:
+        -   from:
+                -   namespaceSelector:
+                        matchLabels:
+                            kubernetes.io/metadata.name: kube-system
+                    podSelector:
+                        matchLabels:
+                            app.kubernetes.io/name: rke2-ingress-nginx

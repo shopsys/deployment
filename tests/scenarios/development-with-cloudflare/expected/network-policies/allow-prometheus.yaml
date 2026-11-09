@@ -1,0 +1,20 @@
+# Allows the cluster Prometheus to scrape metrics exporters in the project namespace.
+# Ports are not restricted, so a new exporter needs only a ServiceMonitor, not a change
+# of this policy. What is scraped is controlled by the ServiceMonitors.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-prometheus
+    namespace: "myproject-cloudflare-dev"
+spec:
+    podSelector: {}
+    policyTypes:
+        - Ingress
+    ingress:
+        -   from:
+                -   namespaceSelector:
+                        matchLabels:
+                            kubernetes.io/metadata.name: monitoring
+                    podSelector:
+                        matchLabels:
+                            app.kubernetes.io/name: prometheus
