@@ -1,1 +1,1 @@
-Consumer names must be unique, declared more than once:
+Consumer names must be unique across deploy/consumers.yaml, DEFAULT_CONSUMERS and orchestration/kubernetes/deployments, declared more than once:

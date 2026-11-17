@@ -1,1 +1,0 @@
-Consumers are declared both in DEFAULT_CONSUMERS

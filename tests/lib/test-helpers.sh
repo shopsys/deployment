@@ -136,14 +136,15 @@ check_consumer_invariants() {
     hpa_targets=$(yq e -N 'select(.kind == "HorizontalPodAutoscaler" and .metadata.labels["consumer-autoscaling"] == "true") | .spec.scaleTargetRef.name' "$manifest")
 
     if [ -f "${test_tmp}/deploy/consumers.yaml" ]; then
-        local declared generated
-        declared=$(yq e '.consumers | length' "${test_tmp}/deploy/consumers.yaml")
-        generated=$(echo "$consumers" | grep -c . || true)
-        if [ "$declared" -eq "$generated" ]; then
-            print_success "${prefix}all ${declared} consumers from consumers.yaml have a deployment"
+        # consumers of DEFAULT_CONSUMERS with other names may be deployed alongside, so only the declared ones are looked up
+        local declared missing
+        declared=$(yq e '.consumers[].name | "consumer-" + .' "${test_tmp}/deploy/consumers.yaml")
+        missing=$(comm -23 <(echo "$declared" | sort) <(echo "$consumers" | sort))
+        if [ -z "$missing" ]; then
+            print_success "${prefix}all $(echo "$declared" | grep -c .) consumers from consumers.yaml have a deployment"
             TESTS_PASSED=$((TESTS_PASSED + 1))
         else
-            print_error "${prefix}consumers.yaml declares ${declared} consumers but ${generated} deployments were generated"
+            print_error "${prefix}consumers from consumers.yaml without a deployment: $(echo $missing)"
             TESTS_FAILED=$((TESTS_FAILED + 1)); failed=1
         fi
     fi
