@@ -1,0 +1,1 @@
+A consumer name declared both by a hand-written deployment in orchestration/kubernetes/deployments and in deploy/consumers.yaml must fail the deploy instead of overwriting the hand-written deployment

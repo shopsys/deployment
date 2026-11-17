@@ -66,8 +66,9 @@ tests/
 1. Copy an existing scenario directory
 2. Modify `env.sh` with scenario-specific variables (PROJECT_NAME, DOMAIN_HOSTNAME_*, etc.)
 3. Modify `deploy-project.sh` for scenario-specific configuration (DOMAINS, CRON_INSTANCES, CONSUMERS, etc.)
-   - Instead of `DEFAULT_CONSUMERS`, a scenario may provide `consumers.yaml` (the `deploy/consumers.yaml` format
-     read by `deploy/parts/consumers.sh`); it is copied into the mock project and `DEFAULT_CONSUMERS` must then be omitted
+   - Besides `DEFAULT_CONSUMERS`, a scenario may provide `consumers.yaml` (the `deploy/consumers.yaml` format
+     read by `deploy/parts/consumers.sh`); it is copied into the mock project, consumers of both must have different names
+     (see `consumers-alongside-default-consumers` and `consumers-name-collision`)
    - A scenario expecting a failure provides `expected-error.txt` instead of `expected/`, see `merge-phase-failure` or `consumers-invalid-fields`
 4. Generate expected files: `./tests/run-tests.sh --update my-scenario`
 5. Verify: `./tests/run-tests.sh my-scenario`

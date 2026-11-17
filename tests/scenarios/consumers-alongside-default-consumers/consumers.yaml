@@ -1,5 +1,5 @@
 consumers:
-    # A name different from the DEFAULT_CONSUMERS one: without the conflict check both consumers would be deployed silently
+    # A name different from the DEFAULT_CONSUMERS one: both consumers are deployed side by side
     -   name: product-recalculation
         transports: [product_recalculation_priority_high]
         replicas: 1

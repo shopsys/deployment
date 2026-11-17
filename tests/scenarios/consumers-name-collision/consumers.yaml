@@ -1,0 +1,9 @@
+consumers:
+    # The name of the DEFAULT_CONSUMERS one: without the check the generated deployment would silently overwrite the merged one
+    -   name: email
+        transports: [email_transport]
+        replicas: 1
+        autoscaling:
+            minReplicas: 1
+            maxReplicas: 4
+            threshold: 100

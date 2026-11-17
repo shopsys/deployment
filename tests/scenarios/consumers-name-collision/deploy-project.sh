@@ -1,5 +1,5 @@
 #!/bin/bash -e
-SCENARIO_NAME="consumers-both-declared"
+SCENARIO_NAME="consumers-name-collision"
 source "$(dirname "$0")/../../lib/scenario-base.sh"
 
 # Scenario-specific configuration
