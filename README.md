@@ -167,7 +167,8 @@ This way keeps working unchanged, but it cannot declare autoscaling - for that d
    ...
    ```
 
-2. Move the consumer declaration from `DEFAULT_CONSUMERS` to `app/deploy/consumers.yaml` and remove the array from `deploy-project.sh`:
+2. Move the consumer declaration from `DEFAULT_CONSUMERS` to `app/deploy/consumers.yaml` and remove the moved consumers from the array in `deploy-project.sh`
+   (remove the whole array when all consumers are moved):
 
    ```yaml
    consumers:
@@ -196,8 +197,9 @@ This way keeps working unchanged, but it cannot declare autoscaling - for that d
    | `autoscaling.queues`      | Non-empty list of RabbitMQ queue names watched by the autoscaler, defaults to `transports` - set it when the queue name differs from the transport name (see `config/packages/messenger.yaml`); letters, digits, `_`, `.` and `-`, starting and ending with a letter or digit, at most 63 characters |
 
 > [!IMPORTANT]
-> A project must use either `DEFAULT_CONSUMERS` or `consumers.yaml`. The deploy fails when `consumers.yaml` exists
-> and the merge phase already generated consumer deployments (from `DEFAULT_CONSUMERS` or from `orchestration/kubernetes/deployments`).
+> Consumer names must be unique across `consumers.yaml`, `DEFAULT_CONSUMERS` and the hand-written `consumer-<name>.yaml` deployments
+> in `orchestration/kubernetes/deployments`. The deploy fails when a name from `consumers.yaml` is already declared in one of the other two,
+> consumers with different names are deployed side by side. Remove a moved consumer from `DEFAULT_CONSUMERS`, otherwise the deploy fails.
 
 The file is read during deploy, so changing replicas or thresholds does not need a rebuild of the image.
 The whole declaration, including the autoscaling blocks, is validated on every deploy even when

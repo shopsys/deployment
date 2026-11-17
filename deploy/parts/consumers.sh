@@ -19,13 +19,6 @@ if [ ! -f "${CONSUMERS_YAML_PATH}" ]; then
     return
 fi
 
-# DEFAULT_CONSUMERS lives in the merge phase (another process), so the conflict is detected from the manifests it generated
-if compgen -G "${CONFIGURATION_TARGET_PATH}/deployments/consumer-*.yaml" > /dev/null; then
-    echo -e "[${RED}ERROR${NO_COLOR}] Consumers are declared both in DEFAULT_CONSUMERS (or orchestration/kubernetes/deployments) and deploy/consumers.yaml, use only one of them:"
-    ls "${CONFIGURATION_TARGET_PATH}"/deployments/consumer-*.yaml
-    exit 1
-fi
-
 # environment-variables.sh unsets the array after injecting it
 if ! declare -p ENVIRONMENT_VARIABLES > /dev/null 2>&1; then
     echo -e "[${RED}ERROR${NO_COLOR}] consumers.sh must be sourced before environment-variables.sh in deploy-project.sh"
@@ -47,10 +40,13 @@ if [ -n "${INVALID_CONSUMER_NAMES}" ]; then
     exit 1
 fi
 
-DUPLICATE_CONSUMER_NAMES=$(yq e '.consumers[].name' "${CONSUMERS_YAML_PATH}" | sort | uniq -d)
+# Consumers of DEFAULT_CONSUMERS (the merge phase, another process) and of orchestration/kubernetes/deployments are known only
+# from the manifests consumer-<name>.yaml already present, a name declared there too would be overwritten by the generated one
+EXISTING_CONSUMER_NAMES=$(compgen -G "${CONFIGURATION_TARGET_PATH}/deployments/consumer-*.yaml" | sed 's|^.*/consumer-\(.*\)\.yaml$|\1|' || true)
+DUPLICATE_CONSUMER_NAMES=$( (yq e '.consumers[].name' "${CONSUMERS_YAML_PATH}"; echo "${EXISTING_CONSUMER_NAMES}") | sed '/^$/d' | sort | uniq -d)
 
 if [ -n "${DUPLICATE_CONSUMER_NAMES}" ]; then
-    echo -e "[${RED}ERROR${NO_COLOR}] Consumer names must be unique, declared more than once:"
+    echo -e "[${RED}ERROR${NO_COLOR}] Consumer names must be unique across deploy/consumers.yaml, DEFAULT_CONSUMERS and orchestration/kubernetes/deployments, declared more than once:"
     echo "${DUPLICATE_CONSUMER_NAMES}"
     exit 1
 fi
@@ -104,6 +100,6 @@ while IFS=";" read -r HAS_AUTOSCALING NAME TRANSPORT_NAMES REPLICAS_COUNT MIN_RE
     fi
 done <<< "${CONSUMERS_LINES}"
 
-unset CONSUMERS_YAML_PATH INVALID_CONSUMER_NAMES DUPLICATE_CONSUMER_NAMES INVALID_NAMES CONSUMER_RULES INVALID_FIELDS CONSUMERS_LINES HAS_AUTOSCALING NAME TRANSPORT_NAMES REPLICAS_COUNT MIN_REPLICAS MAX_REPLICAS SCALE_THRESHOLD QUEUE_NAMES
+unset CONSUMERS_YAML_PATH INVALID_CONSUMER_NAMES EXISTING_CONSUMER_NAMES DUPLICATE_CONSUMER_NAMES INVALID_NAMES CONSUMER_RULES INVALID_FIELDS CONSUMERS_LINES HAS_AUTOSCALING NAME TRANSPORT_NAMES REPLICAS_COUNT MIN_REPLICAS MAX_REPLICAS SCALE_THRESHOLD QUEUE_NAMES
 
 echo -e "[${GREEN}OK${NO_COLOR}]"
