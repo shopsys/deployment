@@ -1,0 +1,34 @@
+consumers:
+    # Static consumer without an autoscaling block: plain deployment, never gets an HPA
+    -   name: email
+        transports: [email_transport]
+        replicas: 1
+    # Autoscaled consumer with two transports and no queues: HPA sums the backlog of both transport queues
+    -   name: product-recalculation
+        transports: [product_recalculation_priority_high, product_recalculation_priority_regular]
+        replicas: 1
+        autoscaling:
+            minReplicas: 1
+            maxReplicas: 8
+            threshold: 500
+    # Autoscaled consumer whose RabbitMQ queue name differs from the transport name
+    -   name: order
+        transports: [placed_order_transport]
+        replicas: 1
+        autoscaling:
+            minReplicas: 1
+            maxReplicas: 3
+            threshold: 60
+            queues: [placed_orders]
+    # Static consumer with more than one replica
+    -   name: export
+        transports: [export_transport]
+        replicas: 2
+    # Autoscaled consumer with the smallest allowed bounds, scaled to zero pods while its queue is empty
+    -   name: idle
+        transports: [idle_transport]
+        replicas: 1
+        autoscaling:
+            minReplicas: 0
+            maxReplicas: 2
+            threshold: 10

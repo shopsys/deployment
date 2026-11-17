@@ -1,0 +1,5 @@
+# A map instead of a list: without the check the first yq expression fails with "cannot index array with 'name'"
+consumers:
+    name: email
+    transports: [email_transport]
+    replicas: 1
