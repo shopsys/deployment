@@ -19,7 +19,7 @@
     +   source "${DEPLOY_TARGET_PATH}/parts/consumers.sh"
         source "${DEPLOY_TARGET_PATH}/parts/environment-variables.sh"
     ```
-  - `DEFAULT_CONSUMERS` keeps working unchanged, nothing changes for projects that do not adopt the file; a project using both fails the deploy
+  - `DEFAULT_CONSUMERS` keeps working unchanged, nothing changes for projects that do not adopt the file; a consumer name declared both in the file and in `DEFAULT_CONSUMERS` (or in `orchestration/kubernetes/deployments`) fails the deploy
   - the deploy account of a project adopting the file needs `list` and `delete` permissions on `horizontalpodautoscalers` in the project namespace (autoscalers of consumers no longer autoscaled are deleted by the deploy)
   - `autoscaling.minReplicas: 0` scales a consumer to zero pods while its queues are empty; it needs the `HPAScaleToZero` feature gate on the cluster, ask your cluster administrator
   - the autoscaling is disabled by default, enable it per environment with `ENABLE_CONSUMER_AUTOSCALING=true`; the first deploy after enabling it briefly resets the autoscaled consumers to 1 replica, see [Enable consumer autoscaling](README.md#enable-consumer-autoscaling)
