@@ -10,6 +10,10 @@
 2. Run `composer update shopsys/deployment`
 3. Check files in mentioned pull requests and if you have any of them extended in your project, apply changes manually
 
+## Upgrade from v5.4.0 to v5.5.0
+
+- upgraded nginx to version 1.31 to resolve HTTP/2 vulnerabilities CVE-2026-123007 and CVE-2026-123633 ([#87](https://github.com/shopsys/deployment/pull/87))
+
 ## Upgrade from v5.3.0 to v5.4.0
 
 - added Gotenberg service for gift voucher PDF rendering ([#83](https://github.com/shopsys/deployment/pull/83))
