@@ -34,6 +34,27 @@ def get_deploy_changes(last_deployment_commit: str, current_deployment_commit: s
         print(f"Error: {e.stderr}")
         return []
 
+def get_deploy_commands(last_deployment_commit: str, current_deployment_commit: str) -> list:
+    # get deployed commands from git commit messages, that are prefixed with '-'
+
+    try:
+        command = f"git log --first-parent master {last_deployment_commit}..{current_deployment_commit} --pretty=format:'%B' | awk '/^-/ {{print}} /^$/ {{print \"\"}}'"
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            check=True,
+            text=True
+        )
+        # Split the output into individual changes
+        changes = result.stdout.split('\n')
+        formatted_changes = [f"• {parse_change(change)}\n" for change in changes if '!ignore' not in change]
+        return formatted_changes
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.stderr}")
+        return []
+
 
 def parse_change(change: str) -> str:
     jira_url = os.getenv('JIRA_URL', None)
@@ -49,13 +70,15 @@ def parse_change(change: str) -> str:
 
 
 def get_deployed_commit_hash() -> str:
+    global deployed_commit_hash
     api_url = f"{os.environ.get('CI_API_V4_URL')}/projects/{os.environ.get('CI_PROJECT_ID')}"
     api_token = os.environ.get('API_TOKEN')
 
     response = requests.get(f"{api_url}/deployments?environment=production&status=success&sort=desc",
                             headers={'PRIVATE-TOKEN': api_token}, timeout=10).json()
 
-    return response[0]['sha']
+    deployed_commit_hash = response[0]['sha']
+    return return deployed_commit_hash
 
 
 def start_deploy() -> None:
@@ -77,7 +100,9 @@ def end_deploy(end_type: Type) -> None:
         call_slack(text)
 
     else:
-        text = ':white_check_mark: Deployment successfully completed'
+        text = ':white_check_mark: Deployment successfully completed\n' + ''.join(
+        get_deploy_commands(deployed_commit_hash, os.environ.get('CI_COMMIT_SHA')))
+    call_slack(text, message_id, unfurl_links=True)
         call_slack(text)
 
 
