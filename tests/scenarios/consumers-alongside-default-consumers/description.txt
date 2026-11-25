@@ -1,0 +1,1 @@
+Consumers with different names declared in DEFAULT_CONSUMERS (inside the merge function, as in project-base) and in deploy/consumers.yaml are deployed side by side, only the one from deploy/consumers.yaml gets an autoscaler
